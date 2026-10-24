@@ -1,0 +1,26 @@
+export component UiButton inherits Rectangle {
+    in property <string> label: "";
+    in property <color> button-color: #285943;
+    in property <color> text-color: white;
+    in property <length> button-height: 44px;
+    in property <length> corner-radius: 8px;
+
+    callback clicked();
+
+    background: button-color;
+    border-radius: corner-radius;
+    height: button-height;
+
+    Text {
+        text: label;
+        color: text-color;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
