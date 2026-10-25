@@ -1,0 +1,61 @@
+import { VerticalBox } from "std-widgets.slint";
+import { UiButton } from "../UI/ui_button.slint";
+
+export component HomeScreen inherits VerticalBox {
+    callback open-fields();
+    callback open-activities();
+    callback open-harvest();
+
+    spacing: 16px;
+
+    Text {
+        text: "Your farm, your records.";
+        color: #212923;
+        font-size: 15px;
+    }
+
+    Rectangle {
+        background: white;
+        border-radius: 12px;
+        min-height: 100px;
+
+        VerticalBox {
+            padding: 16px;
+            spacing: 8px;
+
+            Text {
+                text: "My Farm";
+                color: black;
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            Text {
+                text: "Keep your fields and activities organized.";
+                color: #59665c;
+                wrap: word-wrap;
+            }
+        }
+    }
+
+    UiButton {
+        label: "Fields";
+        clicked => {
+            root.open-fields();
+        }
+    }
+
+    UiButton {
+        label: "Activities";
+        clicked => {
+            root.open-activities();
+        }
+    }
+
+    UiButton {
+        label: "Harvest";
+        clicked => {
+            root.open-harvest();
+        }
+    }
+}

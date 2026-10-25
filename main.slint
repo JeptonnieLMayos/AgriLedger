@@ -1,0 +1,67 @@
+import { HomeScreen } from "Screens/home.slint";
+import { FieldsScreen } from "Screens/fields.slint";
+import { ActivitiesScreen } from "Screens/activities.slint";
+import { HarvestScreen } from "Screens/harvest.slint";
+import { VerticalBox } from "std-widgets.slint";
+
+export component MainWindow inherits Window {
+    title: "AgriLedger";
+    preferred-width: 420px;
+    preferred-height: 600px;
+    background: #afecba;
+
+    in-out property <string> current-screen: "home";
+
+    VerticalBox {
+        padding: 24px;
+        padding-top: 32px;
+        spacing: 16px;
+
+        // Shared header goes here.
+
+        // Screen content goes here.
+        if root.current-screen == "home": HomeScreen {
+            open-fields => {
+                root.current-screen = "fields";
+            }
+            open-activities => {
+                root.current-screen = "activities";
+            }
+            open-harvest => {
+                root.current-screen = "harvest";
+            }
+        }
+
+        if root.current-screen == "fields": FieldsScreen {
+            go-back => {
+                root.current-screen = "home";
+            }
+        }
+
+        if root.current-screen == "activities": ActivitiesScreen {
+            go-back => {
+                root.current-screen = "home";
+            }
+        }
+
+        if root.current-screen == "harvest": HarvestScreen {
+            go-back => {
+                root.current-screen = "home";
+            }
+        }
+
+        Rectangle {
+            background: transparent;
+            vertical-stretch: 1;
+        }
+
+        // Shared footer goes here.
+        Text {
+            text: "Works offline · Your records stay on your device";
+            color: #59665c;
+            font-size: 12px;
+            horizontal-alignment: center;
+            wrap: word-wrap;
+        }
+    }
+}
