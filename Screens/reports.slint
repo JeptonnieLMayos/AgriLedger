@@ -2,7 +2,7 @@
 import { VerticalBox } from "std-widgets.slint";
 import { UiButton } from "../UI/ui_button.slint";
 
-export component ActivitiesScreen inherits Rectangle {
+export component ReportsScreen inherits Rectangle {
     callback go-back();
 
     background: #afecba;
@@ -12,18 +12,12 @@ export component ActivitiesScreen inherits Rectangle {
         spacing: 16px;
 
         Text {
-            text: "Activities";
+            text: "Reports";
             font-size: 18px;
             font-weight: 700;
             color: #022817;
         }
 
-        UiButton {
-            label: "Back";
-            clicked => {
-                root.go-back();
-            }
-        }
     }
 }
 

@@ -1,0 +1,31 @@
+export component UiButtonImg inherits Rectangle {
+    in property <image> img: @image-url("../Images/leaf_pair.png");
+    in property <color> bg-color: transparent;
+    in property <length> img-height: 40px;
+    in property <length> img-width: 40px;
+
+    callback clicked();
+
+    background: bg-color;
+
+    Image {
+        source: img;
+        height: img-height;
+        width: img-width;
+        image-fit: contain;
+
+
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+    }
+
+    TouchArea {
+
+        width: parent.width;
+        height: parent.height;
+
+        clicked => {
+            root.clicked();
+        }
+    }
+}

@@ -10,6 +10,9 @@ crate-type = ["cdylib"]
 
 [dependencies]
 slint = { version = "=1.16.0", features = ["backend-android-activity-06"] }
+rusqlite = { version = "0.37", features = ["bundled"] }
+dirs = "6"
+
 
 [build-dependencies]
 slint-build = "=1.16.0"
@@ -31,3 +34,4 @@ value = "agriledger"
 [[package.metadata.android.application.activity.intent_filter]]
 actions = ["android.intent.action.MAIN"]
 categories = ["android.intent.category.LAUNCHER"]
+

@@ -3,8 +3,7 @@ import { UiButton } from "../UI/ui_button.slint";
 
 export component HomeScreen inherits VerticalBox {
     callback open-fields();
-    callback open-activities();
-    callback open-harvest();
+    callback open-reports();
 
     spacing: 16px;
 
@@ -38,24 +37,4 @@ export component HomeScreen inherits VerticalBox {
         }
     }
 
-    UiButton {
-        label: "Fields";
-        clicked => {
-            root.open-fields();
-        }
-    }
-
-    UiButton {
-        label: "Activities";
-        clicked => {
-            root.open-activities();
-        }
-    }
-
-    UiButton {
-        label: "Harvest";
-        clicked => {
-            root.open-harvest();
-        }
-    }
 }

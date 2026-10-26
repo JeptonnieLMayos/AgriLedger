@@ -1,16 +1,112 @@
 import { HomeScreen } from "Screens/home.slint";
 import { FieldsScreen } from "Screens/fields.slint";
-import { ActivitiesScreen } from "Screens/activities.slint";
-import { HarvestScreen } from "Screens/harvest.slint";
-import { VerticalBox } from "std-widgets.slint";
+import { ReportsScreen } from "Screens/reports.slint";
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { UiButtonImg } from "UI/ui_button_img.slint";
 
 export component MainWindow inherits Window {
     title: "AgriLedger";
     preferred-width: 420px;
     preferred-height: 600px;
-    background: #afecba;
+    background: #c2cbbd;
+
+    Image {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.height;
+
+        source: @image-url("Images/cartoon_leaf_background_small.png");
+        horizontal-tiling: repeat;
+        vertical-tiling: repeat;
+    }
 
     in-out property <string> current-screen: "home";
+    in-out property <bool> has-fields: false;
+    in-out property <bool> show-field-form: false;
+    in property <[string]> field-lines: [];
+
+    callback save-field(
+        string,
+        string,
+        string,
+        string,
+        string,
+        string
+    );
+
+
+    
+    VerticalBox {
+        padding: 0px;
+
+        Rectangle {
+            background: black;
+            drop-shadow-blur: 5px;
+            drop-shadow-color: gray;
+            drop-shadow-offset-y: 1px;
+            VerticalLayout {
+                
+                padding: 0px;
+                Rectangle {
+                    background: transparent;
+                    height: 32px;
+                }
+    
+                Rectangle {
+                background: #cdd6c9;
+                height: 56px;
+                border-top-left-radius: 16px;
+                border-top-right-radius: 16px;
+        
+                HorizontalBox {
+                    padding: 16px;
+                    alignment: space-between;
+                    spacing: 16px;
+        
+        
+                    
+                    HorizontalBox {
+                        padding: 0px;
+                        spacing: 0px;
+                        alignment: start;
+                        Image {
+                            source: @image-url("Images/leaf_pair.png");
+                            height: 32px;
+                            width: 32px;
+                            image-fit: contain;
+                            }
+        
+                        Text {
+                            text: "AgriLedger";
+                            color: #002208;
+                            font-size: 16px;
+                            font-weight: 800;
+                            horizontal-alignment: left;
+                            vertical-alignment: bottom;
+                            wrap: word-wrap;
+                        }
+                    }
+        
+                    Rectangle {
+                        background: transparent;
+                        horizontal-stretch: 1;
+                    }
+        
+                    Image {
+                        source: @image-url("Images/settings.png");
+                        height: 32px;
+                        width: 32px;
+                        image-fit: contain;
+                        }
+        
+        
+                }
+            }
+            }
+
+
+        }
 
     VerticalBox {
         padding: 24px;
@@ -24,30 +120,27 @@ export component MainWindow inherits Window {
             open-fields => {
                 root.current-screen = "fields";
             }
-            open-activities => {
-                root.current-screen = "activities";
-            }
-            open-harvest => {
-                root.current-screen = "harvest";
+            open-reports => {
+                root.current-screen = "reports";
             }
         }
 
         if root.current-screen == "fields": FieldsScreen {
-            go-back => {
-                root.current-screen = "home";
+            has-fields: root.has-fields;
+            show-form <=> root.show-field-form;
+            field-lines: root.field-lines;
+
+            add-field => {
+                root.show-field-form = true;
+            }
+
+            save-field(name, area, unit, crop, date, status) => {
+                root.save-field(name, area, unit, crop, date, status);
             }
         }
 
-        if root.current-screen == "activities": ActivitiesScreen {
-            go-back => {
-                root.current-screen = "home";
-            }
-        }
+        if root.current-screen == "reports": ReportsScreen {
 
-        if root.current-screen == "harvest": HarvestScreen {
-            go-back => {
-                root.current-screen = "home";
-            }
         }
 
         Rectangle {
@@ -55,13 +148,74 @@ export component MainWindow inherits Window {
             vertical-stretch: 1;
         }
 
-        // Shared footer goes here.
-        Text {
-            text: "Works offline · Your records stay on your device";
-            color: #59665c;
-            font-size: 12px;
-            horizontal-alignment: center;
-            wrap: word-wrap;
+        Rectangle {
+
+            Text {
+                text: "Works offline · Your records stay on your device";
+                color: #59665c;
+                font-size: 12px;
+                horizontal-alignment: center;
+                wrap: word-wrap;
+            }
+        }
+
+        
+    }
+
+
+
+Rectangle {
+    height: 96px;
+    background: #cdd6c9;
+    drop-shadow-blur: 5px;
+    drop-shadow-color: gray;
+    drop-shadow-offset-y: -1px;
+    VerticalLayout {
+        padding: 0px;
+
+        HorizontalLayout {
+            padding: 8px;
+            spacing: 0px;
+    
+            UiButtonImg {
+                width: 33%;
+                height: 64px;
+                img: @image-url("Images/Home.png");
+    
+                clicked => {
+                    root.current-screen = "home";
+                }
+            }
+    
+            UiButtonImg {
+                width: 33%;
+                height: 64px;
+                img: @image-url("Images/Fields.png");
+    
+                clicked => {
+                    root.current-screen = "fields";
+                }
+            }
+    
+            UiButtonImg {
+                width: 33%;
+                height: 64px;
+                img: @image-url("Images/Reports.png");
+    
+                clicked => {
+                    root.current-screen = "reports";
+                }
+            }
+    
+        }
+        Rectangle {
+            height: 16px;
+            background: transparent;
         }
     }
+
+}
+
+    }
+
 }
