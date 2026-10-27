@@ -1,0 +1,41 @@
+import { DatePickerPopup, Button, Date } from "std-widgets.slint";
+
+export component UIDatePicker inherits Rectangle {
+    in-out property <Date> _date;
+    in-out property <string> date_string:   "\{_date.year}-\{_date.month}-\{_date.day}";
+    in property <length> _border-radius: 5px;
+    in property <color> _border-color: black;
+    in property <length> _border-width: 2px;
+    in property <color> _background: transparent;
+
+    border-radius: _border-radius;
+    border-color: _border-color;
+    border-width: _border-width;
+    background: _background;
+    
+    date-picker-button := Button {
+        width: parent.width;
+        height: 32px;
+        text: date_string;
+
+        clicked => {
+            date-picker.show();
+        }
+    }
+
+    date-picker := DatePickerPopup {
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+        close-policy: PopupClosePolicy.no-auto-close;
+
+        accepted(date) => {
+            root._date = date;
+            root.date_string = "\{_date.year}-\{_date.month}-\{_date.day}";
+            date-picker.close();
+        }
+
+        canceled => {
+            date-picker.close();
+        }
+    }
+}

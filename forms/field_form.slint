@@ -1,0 +1,108 @@
+import { VerticalBox, Date } from "std-widgets.slint";
+import { UiButton } from "../UI/ui_button.slint";
+import { UILineEdit } from "../UI/ui_line_edit.slint";
+import { UIComboBox } from "../UI/ui_combo_box.slint";
+import { UIDatePicker } from "../UI/ui_date_picker.slint";
+import { FieldData } from "../models/field_data.slint";
+
+export component FieldForm inherits VerticalBox {
+    callback save-field(
+        FieldData
+    );
+    callback cancel();
+    
+    spacing: 10px;
+
+    in property <Date> current-date;
+    in property <bool> editing: false;
+    in-out property <FieldData> field; 
+
+
+    Text {
+        text: root.editing ? "Edit Field" : "New Field";
+        font-size: 18px;
+        font-weight: 700;
+        color: #022817;
+    }
+
+    Text {
+        text: "Name";
+        color: #022817;
+    }
+
+
+    UILineEdit {
+        _text <=> root.field.name;
+    }
+
+
+
+    Text {
+        text: "Area";
+        color: #022817;
+    }
+
+
+    UILineEdit {
+        _text <=> root.field.area;
+    }
+
+    Text {
+        text: "Measurement unit";
+        color: #022817;
+    }
+
+    UIComboBox {
+        _model: ["m²", "hectares", "acres"];
+        _current-value <=> root.field.area-unit;
+    }
+
+    Text {
+        text: "Crop";
+        color: #022817;
+    }
+
+    UILineEdit {
+        _text <=> root.field.crop;
+    }
+
+    Text {
+        text: "Planting date (YYYY-MM-DD)";
+        color: #022817;
+    }
+
+    UIDatePicker {
+        _date: root.current_date;
+        date_string <=> root.field.planting-date;
+    }
+
+    Text {
+        text: "Status";
+        color: #022817;
+    }
+
+    UIComboBox {
+        _model: ["Growing", "Harvested", "Fallow", "Prepared"];
+        _current-value <=> root.field.status;
+    }
+
+    UiButton {
+        label: root.editing ? "Save Changes" : "Save Field";
+        clicked => {
+            if root.field.name != "" &&
+                root.field.area != "" {
+                root.save-field(
+                    field
+                );
+            }
+        }
+    }
+
+    UiButton {
+        label: "Cancel";
+        button-color: #59665c;
+        clicked => {
+            root.cancel();
+        }
+    }
+}

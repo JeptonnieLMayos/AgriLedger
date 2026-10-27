@@ -12,6 +12,7 @@ crate-type = ["cdylib"]
 slint = { version = "=1.16.0", features = ["backend-android-activity-06"] }
 rusqlite = { version = "0.37", features = ["bundled"] }
 dirs = "6"
+chrono = "0.4.45"
 
 
 [build-dependencies]

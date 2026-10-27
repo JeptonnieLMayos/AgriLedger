@@ -1,0 +1,19 @@
+import { ComboBox } from "std-widgets.slint";
+export component UIComboBox inherits Rectangle {
+    in-out property <string> _current-value;
+    in property <length> _border-radius: 5px;
+    in property <color> _border-color: black;
+    in property <length> _border-width: 2px;
+    in property <color> _background: transparent;
+    in property <[string]> _model: ["selection 1", "selection 2", "selection 3"];
+
+    border-radius: _border-radius;
+    border-color: _border-color;
+    border-width: _border-width;
+    background: _background;
+    ComboBox {
+        width: parent.width;
+        model: _model;
+        current-value <=> root._current-value;
+    }
+}

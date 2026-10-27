@@ -87,3 +87,79 @@ pub fn list_fields(conn: &Connection) -> Result<Vec<String>> {
 
     rows.collect()
 }
+
+
+pub fn update_field(
+    conn: &Connection,
+    id: i64,
+    name: &str,
+    area: f64,
+    area_unit: &str,
+    crop: &str,
+    planting_date: &str,
+    status: &str,
+) -> Result<bool> {
+    let changed = conn.execute(
+        "UPDATE fields
+         SET name = ?1,
+             area = ?2,
+             area_unit = ?3,
+             crop = ?4,
+             planting_date = ?5,
+             status = ?6
+         WHERE id = ?7",
+        (
+            name,
+            area,
+            area_unit,
+            crop,
+            planting_date,
+            status,
+            id,
+        ),
+    )?;
+
+    Ok(changed > 0)
+}
+
+pub fn delete_field(conn: &Connection, id: i64) -> Result<bool> {
+    let deleted = conn.execute(
+        "DELETE FROM fields WHERE id = ?1",
+        [id],
+    )?;
+
+    Ok(deleted > 0)
+}
+
+
+pub struct FieldRecord {
+    pub id: i64,
+    pub name: String,
+    pub area: f64,
+    pub area_unit: String,
+    pub crop: String,
+    pub planting_date: String,
+    pub status: String,
+}
+
+pub fn get_fields(conn: &Connection) -> Result<Vec<FieldRecord>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, name, area, area_unit, crop, planting_date, status
+         FROM fields
+         ORDER BY id",
+    )?;
+
+    let rows = stmt.query_map([], |row| {
+        Ok(FieldRecord {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            area: row.get(2)?,
+            area_unit: row.get(3)?,
+            crop: row.get(4)?,
+            planting_date: row.get(5)?,
+            status: row.get(6)?,
+        })
+    })?;
+
+    rows.collect()
+}

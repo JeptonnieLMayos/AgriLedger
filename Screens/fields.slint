@@ -1,36 +1,46 @@
 
-import { VerticalBox, LineEdit, ComboBox } from "std-widgets.slint";
+import { VerticalBox, LineEdit, ComboBox, Date } from "std-widgets.slint";
 import { UiButton } from "../UI/ui_button.slint";
+import { UILineEdit } from "../UI/ui_line_edit.slint";
+import { UIComboBox } from "../UI/ui_combo_box.slint";
+import { UIDatePicker } from "../UI/ui_date_picker.slint";
+import { FieldForm } from "../forms/field_form.slint";
+import { FieldData } from "../models/field_data.slint";
+
+
 
 export component FieldsScreen inherits Rectangle {
     callback go-back();
     callback add-field();
     callback save-field(
-        string,
-        string,
-        string,
-        string,
-        string,
-        string
+        FieldData
+    );
+    callback edit-field(
+        FieldData
     );
 
+    in-out property <int> selected-field-id: -1;
+    in-out property <bool> editing-field: false;
     in property <bool> has-fields: false;
     in-out property <bool> show-form: false;
-    in property <[string]> field-lines: [];
+    in property <[FieldData]> fields: [];
+    in-out property <FieldData> field;
+    // in-out property <string> planting-date: 
+    //     "\{root.current-date.year
+    //     }-\{root.current-date.month
+    //     }-\{root.current-date.day}";
+    in-out property <Date> current-date;
 
-    in-out property <string> field-name: "";
-    in-out property <string> field-area: "";
-    in-out property <string> area-unit: "m²";
-    in-out property <string> crop: "";
-    in-out property <string> planting-date: "";
-    in-out property <string> status: "Fallow";
 
     background: transparent;
+
 
     VerticalBox {
         padding: 24px;
         spacing: 16px;
-/*  */
+
+
+
         Text {
             text: "Fields";
             font-size: 22px;
@@ -39,122 +49,50 @@ export component FieldsScreen inherits Rectangle {
         }
 
         if !root.show-form: UiButton {
+            
             label: "+ Add Field";
             clicked => {
-                root.field-name = "";
-                root.field-area = "";
-                root.area-unit = "m²";
-                root.crop = "";
-                root.planting-date = "";
-                root.status = "Fallow";
+                root.editing-field = false;
+                root.selected-field-id = -1;
+                root.field.id = 0;
+                root.field.name = "";
+                root.field.area = "";
+                root.field.area-unit = "m²";
+                root.field.crop = "";
+                // root.planting-date = 
+                //     "\{root.current-date.year
+                //     }-\{root.current-date.month
+                //     }-\{root.current-date.day}";
+                root.field.planting-date = "2026-10-10";
+                root.field.status = "Fallow";
                 root.add-field();
             }
         }
 
-        if root.show-form: VerticalBox {
-            spacing: 10px;
-
-            Text {
-                text: "New Field";
-                font-size: 18px;
-                font-weight: 700;
-                color: #022817;
+        if root.show-form: FieldForm {
+            editing: root.editing-field;
+            field <=> root.field;
+            save-field(
+                field
+            ) => {
+                root.save-field(
+                    field
+                );
             }
 
-            Text {
-                text: "Field name or number";
-                color: #022817;
-            }
-
-            LineEdit {
-                text <=> root.field-name;
-            }
-
-            Text {
-                text: "Area";
-                color: #022817;
-            }
-
-            LineEdit {
-                text <=> root.field-area;
-            }
-
-            Text {
-                text: "Measurement unit";
-                color: #022817;
-            }
-
-            ComboBox {
-                model: ["m²", "hectares", "acres"];
-                current-value <=> root.area-unit;
-            }
-
-            Text {
-                text: "Current crop";
-                color: #022817;
-            }
-
-            LineEdit {
-                text <=> root.crop;
-            }
-
-            Text {
-                text: "Planting date (YYYY-MM-DD)";
-                color: #022817;
-            }
-
-            LineEdit {
-                text <=> root.planting-date;
-            }
-
-            Text {
-                text: "Field status";
-                color: #022817;
-            }
-
-            ComboBox {
-                model: ["Growing", "Harvested", "Fallow", "Prepared"];
-                current-value <=> root.status;
-            }
-
-            UiButton {
-                label: "Save Field";
-                clicked => {
-                    if root.field-name != "" &&
-                       root.field-area != "" {
-                        root.save-field(
-                            root.field-name,
-                            root.field-area,
-                            root.area-unit,
-                            root.crop,
-                            root.planting-date,
-                            root.status
-                        );
-                    }
-                }
-            }
-
-            UiButton {
-                label: "Cancel";
-                button-color: #59665c;
-                clicked => {
-                    root.show-form = false;
-                }
+            cancel => {
+                root.show-form = false;
             }
         }
 
         if !root.show-form: Flickable {
-            // width: parent.width;
-            // height: 400px;
-
             viewport-width: self.width;
             viewport-height: max(
                 self.height,
-                root.field-lines.length * 130px
+                root.fields.length * 130px
             );
 
             VerticalBox {
-                // width: parent.width;
                 spacing: 10px;
 
                 if !root.has-fields: VerticalBox {
@@ -173,8 +111,7 @@ export component FieldsScreen inherits Rectangle {
                     }
                 }
 
-                for field in root.field-lines: Rectangle {
-                    // width: parent.width;
+                for field in root.fields: Rectangle {
                     height: 120px;
                     background: #f4fff5;
                     border-radius: 8px;
@@ -184,11 +121,22 @@ export component FieldsScreen inherits Rectangle {
                         y: 10px;
                         width: parent.width - 24px;
                         height: parent.height - 20px;
-                        text: field;
+                        text: field.display-text;
                         color: #022817;
                         wrap: word-wrap;
                         vertical-alignment: center;
                     }
+
+                    TouchArea {
+                clicked => {
+                    root.editing-field = true;
+                    root.selected-field-id = field.id;
+                    root.field = field;
+                    root.edit-field(
+                        field
+                    );
+                }
+            }
                 }
             }
         }

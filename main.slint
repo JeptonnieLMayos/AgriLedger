@@ -1,14 +1,18 @@
 import { HomeScreen } from "Screens/home.slint";
 import { FieldsScreen } from "Screens/fields.slint";
 import { ReportsScreen } from "Screens/reports.slint";
-import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, Date, Button } from "std-widgets.slint";
 import { UiButtonImg } from "UI/ui_button_img.slint";
+import { FieldData } from "models/field_data.slint";
+
+
 
 export component MainWindow inherits Window {
     title: "AgriLedger";
     preferred-width: 420px;
     preferred-height: 600px;
     background: #c2cbbd;
+
 
     Image {
         x: 0;
@@ -20,22 +24,14 @@ export component MainWindow inherits Window {
         horizontal-tiling: repeat;
         vertical-tiling: repeat;
     }
-
     in-out property <string> current-screen: "home";
     in-out property <bool> has-fields: false;
     in-out property <bool> show-field-form: false;
-    in property <[string]> field-lines: [];
+    in property <[FieldData]> fields: [];
+    in-out property <FieldData> field;
+    in-out property <Date> current-date;
 
-    callback save-field(
-        string,
-        string,
-        string,
-        string,
-        string,
-        string
-    );
-
-
+    callback save-field(FieldData);
     
     VerticalBox {
         padding: 0px;
@@ -113,9 +109,6 @@ export component MainWindow inherits Window {
         padding-top: 32px;
         spacing: 16px;
 
-        // Shared header goes here.
-
-        // Screen content goes here.
         if root.current-screen == "home": HomeScreen {
             open-fields => {
                 root.current-screen = "fields";
@@ -128,14 +121,20 @@ export component MainWindow inherits Window {
         if root.current-screen == "fields": FieldsScreen {
             has-fields: root.has-fields;
             show-form <=> root.show-field-form;
-            field-lines: root.field-lines;
+            fields <=> root.fields;
+            current-date: root.current-date;
 
             add-field => {
                 root.show-field-form = true;
             }
 
-            save-field(name, area, unit, crop, date, status) => {
-                root.save-field(name, area, unit, crop, date, status);
+            save-field(field) => {
+                root.save-field(field);
+            }
+
+            edit-field(field) => {
+                root.field = field;
+                root.show-field-form = true;
             }
         }
 

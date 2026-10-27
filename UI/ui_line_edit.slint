@@ -1,0 +1,17 @@
+import { LineEdit } from "std-widgets.slint";
+export component UILineEdit inherits Rectangle {
+    in-out property <string> _text;
+    in property <length> _border-radius: 5px;
+    in property <color> _border-color: black;
+    in property <length> _border-width: 2px;
+    in property <color> _background: transparent;
+
+    border-radius: _border-radius;
+    border-color: _border-color;
+    border-width: _border-width;
+    background: _background;
+    LineEdit {
+        width: parent.width;
+        text <=> root._text;
+    }
+}
