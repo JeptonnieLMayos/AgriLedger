@@ -1,11 +1,13 @@
 
-import { VerticalBox, LineEdit, ComboBox, Date } from "std-widgets.slint";
+import { VerticalBox, LineEdit, ComboBox, Date, Button, HorizontalBox } from "std-widgets.slint";
 import { UiButton } from "../UI/ui_button.slint";
 import { UILineEdit } from "../UI/ui_line_edit.slint";
 import { UIComboBox } from "../UI/ui_combo_box.slint";
 import { UIDatePicker } from "../UI/ui_date_picker.slint";
 import { FieldForm } from "../forms/field_form.slint";
 import { FieldData } from "../models/field_data.slint";
+import { ConfirmDialog } from "../UI/confirm_dialog.slint";
+import { UiButtonImg } from "../UI/ui_button_img.slint";
 
 
 
@@ -18,6 +20,7 @@ export component FieldsScreen inherits Rectangle {
     callback edit-field(
         FieldData
     );
+    callback delete-field(int);
 
     in-out property <int> selected-field-id: -1;
     in-out property <bool> editing-field: false;
@@ -25,21 +28,17 @@ export component FieldsScreen inherits Rectangle {
     in-out property <bool> show-form: false;
     in property <[FieldData]> fields: [];
     in-out property <FieldData> field;
-    // in-out property <string> planting-date: 
-    //     "\{root.current-date.year
-    //     }-\{root.current-date.month
-    //     }-\{root.current-date.day}";
     in-out property <Date> current-date;
+    in-out property <bool> show-delete-dialog: false;
+    in-out property <int> pending-delete-id: -1;
+
 
 
     background: transparent;
 
-
     VerticalBox {
         padding: 24px;
         spacing: 16px;
-
-
 
         Text {
             text: "Fields";
@@ -47,6 +46,8 @@ export component FieldsScreen inherits Rectangle {
             font-weight: 700;
             color: #022817;
         }
+
+
 
         if !root.show-form: UiButton {
             
@@ -59,11 +60,10 @@ export component FieldsScreen inherits Rectangle {
                 root.field.area = "";
                 root.field.area-unit = "m²";
                 root.field.crop = "";
-                // root.planting-date = 
-                //     "\{root.current-date.year
-                //     }-\{root.current-date.month
-                //     }-\{root.current-date.day}";
-                root.field.planting-date = "2026-10-10";
+                root.field.planting-date = 
+                    "\{root.current-date.year
+                    }-\{root.current-date.month
+                    }-\{root.current-date.day}";
                 root.field.status = "Fallow";
                 root.add-field();
             }
@@ -127,20 +127,63 @@ export component FieldsScreen inherits Rectangle {
                         vertical-alignment: center;
                     }
 
-                    TouchArea {
-                clicked => {
-                    root.editing-field = true;
-                    root.selected-field-id = field.id;
-                    root.field = field;
-                    root.edit-field(
-                        field
-                    );
-                }
-            }
+                    HorizontalBox {
+                        Rectangle {
+                            horizontal-stretch: 1;
+                        }
+                        VerticalBox {
+
+                            UiButtonImg {
+                                width: 22px;
+                                height: 22px;
+                                img-height: 20px;
+                                img-width: 20px;
+                                img: @image-url("../Icons/Pencil/Pencil.png");
+                                clicked => {
+                                    root.editing-field = true;
+                                    root.selected-field-id = field.id;
+                                    root.field = field;
+                                    root.edit-field(
+                                        field
+                                        );
+                                }
+                            }
+
+                            UiButtonImg {
+                                width: 22px;
+                                height: 22px;
+                                img-height: 20px;
+                                img-width: 20px;
+                                img: @image-url("../Icons/Trash/Bin-Paper-2.png");
+                                clicked => {
+                                    root.pending-delete-id = field.id;
+                                    root.show-delete-dialog = true;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
 
+    if root.show-delete-dialog: ConfirmDialog {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        width: 320px;
 
+        title: "Delete record?";
+        message: "This record will be permanently deleted. This action cannot be undone.";
+
+        cancelled => {
+            root.show-delete-dialog = false;
+            root.pending-delete-id = -1;
+        }
+
+        confirmed => {
+            root.delete-field(root.pending-delete-id);
+            root.show-delete-dialog = false;
+            root.pending-delete-id = -1;
+        }
     }
 }

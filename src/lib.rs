@@ -3,9 +3,12 @@ mod db;
 slint::include_modules!();
 
 use slint::{ModelRc, VecModel};
+use chrono::{Datelike};
 
 #[cfg(target_os = "android")]
 #[unsafe(no_mangle)]
+
+
 fn android_main(app: slint::android::AndroidApp) {
     slint::android::init(app.clone()).unwrap();
 
@@ -24,18 +27,31 @@ fn android_main(app: slint::android::AndroidApp) {
 
     let weak_window = window.as_weak();
 
+    // current date
+    let now = chrono::Local::now().date_naive();
+
+    window.set_current_date(Date {
+        year: now.year() as i32,
+        month: now.month() as i32,
+        day: now.day() as i32,
+    });
+
+
+    let date = window.get_current_date();
+    eprintln!("Date set in Slint: {}-{}-{}", date.year, date.month, date.day);
+    // current date
 
     window.on_save_field(move |field| {
         let area = match field.area.trim().parse::<f64>() {
             Ok(value) if value.is_finite() && value > 0.0 => value,
             _ => {
-                eprintln!("Field area must be a valid number greater than zero.");
+                eprintln!("Field area must be a valid number greater than zero."); // log
                 return;
             }
         };
 
         if field.name.trim().is_empty() {
-            eprintln!("Field name is required.");
+            eprintln!("Field name is required.");  // log
             return;
         }
 
@@ -66,24 +82,44 @@ fn android_main(app: slint::android::AndroidApp) {
         match result {
             Ok(true) => {}
             Ok(false) => {
-                eprintln!("No field was updated. It may have been deleted.");
+                eprintln!("No field was updated. It may have been deleted.");  // log
                 return;
             }
             Err(error) => {
-                eprintln!("Could not save field: {error}");
+                eprintln!("Could not save field: {error}");  // log
                 return;
             }
         }
 
         if let Some(window) = weak_window.upgrade() {
             if let Err(error) = refresh_fields(&window, &conn) {
-                eprintln!("Could not refresh fields: {error}");
+                eprintln!("Could not refresh fields: {error}");  // log
             } else {
                 window.set_show_field_form(false);
             }
         }
     });
 
+    let delete_conn = db::initialize(&db_path).unwrap();
+    let delete_weak_window = window.as_weak();
+
+    window.on_delete_field(move |id| {
+        match db::delete_field(&delete_conn, id as i64) {
+            Ok(true) => {
+                if let Some(window) = delete_weak_window.upgrade() {
+                    if let Err(error) = refresh_fields(&window, &delete_conn) {
+                        eprintln!("Could not refresh fields: {error}");  // log
+                    }
+                }
+            }
+            Ok(false) => {
+                eprintln!("No field was deleted. It may already be gone.");
+            }
+            Err(error) => {
+                eprintln!("Could not delete field: {error}");
+            }
+        }
+    });
 
     window.run().unwrap();
 }

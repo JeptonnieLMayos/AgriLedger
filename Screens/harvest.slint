@@ -1,0 +1,26 @@
+
+import { VerticalBox } from "std-widgets.slint";
+import { UiButton } from "../UI/ui_button.slint";
+
+export component HarvestScreen inherits Rectangle {
+    callback go-back();
+
+    background: #afecba;
+
+    VerticalBox {
+        padding: 24px;
+        spacing: 16px;
+
+        Text {
+            text: "Harvest";
+            font-size: 18px;
+            font-weight: 700;
+            color: #022817;
+        }
+        Text {
+            text: "Harvest date, quantity, unit, quality, and sales information.";
+        }
+
+    }
+}
+

@@ -1,0 +1,73 @@
+export component ConfirmDialog inherits Rectangle {
+    in property <string> title: "Confirm deletion";
+    in property <string> message: "Are you sure you want to delete this record?";
+    in property <string> confirm-text: "Delete";
+    in property <string> cancel-text: "Cancel";
+
+    callback confirmed();
+    callback cancelled();
+
+    background: #ffffff;
+    border-radius: 16px;
+    border-width: 1px;
+    border-color: #d8e2d9;
+
+    VerticalLayout {
+        padding: 20px;
+        spacing: 14px;
+
+        Text {
+            text: root.title;
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f3222;
+        }
+
+        Text {
+            text: root.message;
+            color: #45574c;
+            wrap: word-wrap;
+        }
+
+        HorizontalLayout {
+            alignment: end;
+            spacing: 10px;
+
+            Rectangle {
+                background: #e8eee9;
+                border-radius: 8px;
+                min-width: 80px;
+                height: 40px;
+
+                Text {
+                    text: root.cancel-text;
+                    color: #0f3222;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                TouchArea {
+                    clicked => { root.cancelled(); }
+                }
+            }
+
+            Rectangle {
+                background: #a32626;
+                border-radius: 8px;
+                min-width: 80px;
+                height: 40px;
+
+                Text {
+                    text: root.confirm-text;
+                    color: #ffffff;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                TouchArea {
+                    clicked => { root.confirmed(); }
+                }
+            }
+        }
+    }
+}

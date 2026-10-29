@@ -1,10 +1,125 @@
 mod db;
 
 slint::include_modules!();
-use std::thread::current;
 
-use slint::{ModelRc, SharedString, VecModel};
-use chrono::{Datelike, Local};
+use slint::{ModelRc, VecModel};
+use chrono::{Datelike};
+
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let data_dir = dirs::data_local_dir()
+        .ok_or("Could not find the application data directory")?
+        .join("AgriLedger");
+
+    std::fs::create_dir_all(&data_dir)?;
+
+    let db_path = data_dir.join("agriledger.db");
+    let conn = db::initialize(&db_path)?;
+
+
+    let window = MainWindow::new()?;
+
+    refresh_fields(&window, &conn)?;
+
+    let weak_window = window.as_weak();
+
+    // current date
+    let now = chrono::Local::now().date_naive();
+
+    window.set_current_date(Date {
+        year: now.year() as i32,
+        month: now.month() as i32,
+        day: now.day() as i32,
+    });
+
+
+    let date = window.get_current_date();
+    eprintln!("Date set in Slint: {}-{}-{}", date.year, date.month, date.day);
+    // current date
+
+    window.on_save_field(move |field| {
+        let area = match field.area.trim().parse::<f64>() {
+            Ok(value) if value.is_finite() && value > 0.0 => value,
+            _ => {
+                eprintln!("Field area must be a valid number greater than zero.");  // log
+                return;
+            }
+        };
+
+        if field.name.trim().is_empty() {
+            eprintln!("Field name is required.");  // log
+            return;
+        }
+
+        let result = if field.id > 0 {
+            db::update_field(
+                &conn,
+                field.id as i64,
+                field.name.trim(),
+                area,
+                field.area_unit.as_str(),
+                field.crop.as_str(),
+                field.planting_date.as_str(),
+                field.status.as_str(),
+            )
+        } else {
+            db::insert_field(
+                &conn,
+                field.name.trim(),
+                area,
+                field.area_unit.as_str(),
+                field.crop.as_str(),
+                field.planting_date.as_str(),
+                field.status.as_str(),
+            )
+            .map(|_| true)
+        };
+
+        match result {
+            Ok(true) => {}
+            Ok(false) => {
+                eprintln!("No field was updated. The selected field may no longer exist.");  // log
+                return;
+            }
+            Err(error) => {
+                eprintln!("Could not save field: {error}");  // log
+                return;
+            }
+        }
+
+        if let Some(window) = weak_window.upgrade() {
+            match refresh_fields(&window, &conn) {
+                Ok(()) => window.set_show_field_form(false),
+                Err(error) => eprintln!("Could not refresh fields: {error}"),
+            }
+        }
+    });
+
+    let delete_conn = db::initialize(&db_path)?;
+    let delete_weak_window = window.as_weak();
+
+    window.on_delete_field(move |id| {
+        match db::delete_field(&delete_conn, id as i64) {
+            Ok(true) => {
+                if let Some(window) = delete_weak_window.upgrade() {
+                    if let Err(error) = refresh_fields(&window, &delete_conn) {
+                        eprintln!("Could not refresh fields: {error}");  // log
+                    }
+                }
+            }
+            Ok(false) => {
+                eprintln!("No field was deleted. ID: {id}");
+            }
+            Err(error) => {
+                eprintln!("Could not delete field: {error}");
+            }
+        }
+    });
+
+    window.run()?;
+
+    Ok(())
+}
 
 fn refresh_fields(
     window: &MainWindow,
@@ -44,101 +159,3 @@ fn refresh_fields(
 
     Ok(())
 }
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-
-
-
-    let data_dir = dirs::data_local_dir()
-        .ok_or("Could not find the application data directory")?
-        .join("AgriLedger");
-
-    std::fs::create_dir_all(&data_dir)?;
-
-    let db_path = data_dir.join("agriledger.db");
-    let conn = db::initialize(&db_path)?;
-
-
-    let window = MainWindow::new()?;
-
-    refresh_fields(&window, &conn)?;
-
-    let weak_window = window.as_weak();
-
-    // current date
-    let now = chrono::Local::now().date_naive();
-
-    window.set_current_date(Date {
-        year: now.year() as i32,
-        month: now.month() as i32,
-        day: now.day() as i32,
-    });
-
-
-    let date = window.get_current_date();
-    eprintln!("Date set in Slint: {}-{}-{}", date.year, date.month, date.day);
-    // current date
-
-    window.on_save_field(move |field| {
-        let area = match field.area.trim().parse::<f64>() {
-            Ok(value) if value.is_finite() && value > 0.0 => value,
-            _ => {
-                eprintln!("Field area must be a valid number greater than zero.");
-                return;
-            }
-        };
-
-        if field.name.trim().is_empty() {
-            eprintln!("Field name is required.");
-            return;
-        }
-
-        let result = if field.id > 0 {
-            db::update_field(
-                &conn,
-                field.id as i64,
-                field.name.trim(),
-                area,
-                field.area_unit.as_str(),
-                field.crop.as_str(),
-                field.planting_date.as_str(),
-                field.status.as_str(),
-            )
-        } else {
-            db::insert_field(
-                &conn,
-                field.name.trim(),
-                area,
-                field.area_unit.as_str(),
-                field.crop.as_str(),
-                field.planting_date.as_str(),
-                field.status.as_str(),
-            )
-            .map(|_| true)
-        };
-
-        match result {
-            Ok(true) => {}
-            Ok(false) => {
-                eprintln!("No field was updated. The selected field may no longer exist.");
-                return;
-            }
-            Err(error) => {
-                eprintln!("Could not save field: {error}");
-                return;
-            }
-        }
-
-        if let Some(window) = weak_window.upgrade() {
-            match refresh_fields(&window, &conn) {
-                Ok(()) => window.set_show_field_form(false),
-                Err(error) => eprintln!("Could not refresh fields: {error}"),
-            }
-        }
-    });
-
-    window.run()?;
-
-    Ok(())
-}
-

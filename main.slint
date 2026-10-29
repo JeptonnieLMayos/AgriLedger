@@ -4,6 +4,8 @@ import { ReportsScreen } from "Screens/reports.slint";
 import { VerticalBox, HorizontalBox, Date, Button } from "std-widgets.slint";
 import { UiButtonImg } from "UI/ui_button_img.slint";
 import { FieldData } from "models/field_data.slint";
+import { ActivitiesScreen } from "Screens/activities.slint";
+import { HarvestScreen } from "Screens/harvest.slint";
 
 
 
@@ -32,6 +34,7 @@ export component MainWindow inherits Window {
     in-out property <Date> current-date;
 
     callback save-field(FieldData);
+    callback delete-field(int);
     
     VerticalBox {
         padding: 0px;
@@ -67,7 +70,9 @@ export component MainWindow inherits Window {
                         spacing: 0px;
                         alignment: start;
                         Image {
-                            source: @image-url("Images/leaf_pair.png");
+                            source: @image-url("Icons/L/Potted-Tree-2.png");
+                            // source: @image-url("Images/leaf_pair.png");
+                            colorize: #15462d;
                             height: 32px;
                             width: 32px;
                             image-fit: contain;
@@ -87,10 +92,15 @@ export component MainWindow inherits Window {
                     Rectangle {
                         background: transparent;
                         horizontal-stretch: 1;
+                        Text {
+                            font-weight: 600;
+                            text: current-date.year + "-" + current-date.month + "-" + current-date.day;
+                        }
                     }
         
                     Image {
-                        source: @image-url("Images/settings.png");
+                        colorize: #15462d;
+                        source: @image-url("Icons/Cog/Cog-1.png");
                         height: 32px;
                         width: 32px;
                         image-fit: contain;
@@ -136,6 +146,18 @@ export component MainWindow inherits Window {
                 root.field = field;
                 root.show-field-form = true;
             }
+            delete-field(id) => {
+                // Forward the selected field ID to the Rust backend.
+                root.delete-field(id);
+            }
+        }
+
+        if root.current-screen == "activities": ActivitiesScreen {
+
+        }
+
+        if root.current-screen == "harvest": HarvestScreen {
+
         }
 
         if root.current-screen == "reports": ReportsScreen {
@@ -177,30 +199,45 @@ Rectangle {
             spacing: 0px;
     
             UiButtonImg {
-                width: 33%;
+                width: 20%;
                 height: 64px;
-                img: @image-url("Images/Home.png");
-    
+                img: @image-url("Icons/Home/Bird-House.png");
                 clicked => {
                     root.current-screen = "home";
                 }
             }
     
             UiButtonImg {
-                width: 33%;
+                width: 20%;
                 height: 64px;
-                img: @image-url("Images/Fields.png");
-    
+                img: @image-url("Icons/Sprout/Sprout.png");
                 clicked => {
                     root.current-screen = "fields";
                 }
             }
+
+            UiButtonImg {
+                width: 20%;
+                height: 64px;
+                img: @image-url("Icons/List/Task-List.png");
+                clicked => {
+                    root.current-screen = "activities";
+                }
+            }
+
+            UiButtonImg {
+                width: 20%;
+                height: 64px;
+                img: @image-url("Icons/Wheat/Wheat.png");
+                clicked => {
+                    root.current-screen = "harvest";
+                }
+            }
     
             UiButtonImg {
-                width: 33%;
+                width: 20%;
                 height: 64px;
-                img: @image-url("Images/Reports.png");
-    
+                img: @image-url("Icons/Graph/Graph-Stats.png");
                 clicked => {
                     root.current-screen = "reports";
                 }
