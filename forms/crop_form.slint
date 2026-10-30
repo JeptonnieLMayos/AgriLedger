@@ -3,11 +3,11 @@ import { UiButton } from "../UI/ui_button.slint";
 import { UILineEdit } from "../UI/ui_line_edit.slint";
 import { UIComboBox } from "../UI/ui_combo_box.slint";
 import { UIDatePicker } from "../UI/ui_date_picker.slint";
-import { FieldData } from "../models/field_data.slint";
+import { CropData } from "../models/crop_data.slint";
 
-export component FieldForm inherits VerticalBox {
-    callback save-field(
-        FieldData
+export component CropForm inherits VerticalBox {
+    callback save-crop(
+        CropData
     );
     callback cancel();
     
@@ -15,11 +15,11 @@ export component FieldForm inherits VerticalBox {
 
     in property <Date> current-date;
     in property <bool> editing: false;
-    in-out property <FieldData> field; 
+    in-out property <CropData> crop; 
 
 
     Text {
-        text: root.editing ? "Edit Field" : "New Field";
+        text: root.editing ? "Edit" : "New";
         font-size: 18px;
         font-weight: 700;
         color: #022817;
@@ -32,7 +32,7 @@ export component FieldForm inherits VerticalBox {
 
 
     UILineEdit {
-        _text <=> root.field.name;
+        _text <=> root.crop.name;
     }
 
 
@@ -44,7 +44,7 @@ export component FieldForm inherits VerticalBox {
 
 
     UILineEdit {
-        _text <=> root.field.area;
+        _text <=> root.crop.area;
     }
 
     Text {
@@ -54,7 +54,7 @@ export component FieldForm inherits VerticalBox {
 
     UIComboBox {
         _model: ["m²", "hectares", "acres"];
-        _current-value <=> root.field.area-unit;
+        _current-value <=> root.crop.area-unit;
     }
 
     Text {
@@ -63,7 +63,7 @@ export component FieldForm inherits VerticalBox {
     }
 
     UILineEdit {
-        _text <=> root.field.crop;
+        _text <=> root.crop.crop;
     }
 
     Text {
@@ -73,7 +73,7 @@ export component FieldForm inherits VerticalBox {
 
     UIDatePicker {
         _date: root.current_date;
-        date_string <=> root.field.planting-date;
+        date_string <=> root.crop.planting-date;
     }
 
     Text {
@@ -83,16 +83,16 @@ export component FieldForm inherits VerticalBox {
 
     UIComboBox {
         _model: ["Growing", "Harvested", "Fallow", "Prepared"];
-        _current-value <=> root.field.status;
+        _current-value <=> root.crop.status;
     }
 
     UiButton {
-        label: root.editing ? "Save Changes" : "Save Field";
+        label: root.editing ? "Save Changes" : "Save";
         clicked => {
-            if root.field.name != "" &&
-                root.field.area != "" {
-                root.save-field(
-                    field
+            if root.crop.name != "" &&
+                root.crop.area != "" {
+                root.save-crop(
+                    crop
                 );
             }
         }

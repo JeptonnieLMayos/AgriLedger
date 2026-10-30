@@ -4,30 +4,30 @@ import { UiButton } from "../UI/ui_button.slint";
 import { UILineEdit } from "../UI/ui_line_edit.slint";
 import { UIComboBox } from "../UI/ui_combo_box.slint";
 import { UIDatePicker } from "../UI/ui_date_picker.slint";
-import { FieldForm } from "../forms/field_form.slint";
-import { FieldData } from "../models/field_data.slint";
+import { CropForm } from "../forms/crop_form.slint";
+import { CropData } from "../models/crop_data.slint";
 import { ConfirmDialog } from "../UI/confirm_dialog.slint";
 import { UiButtonImg } from "../UI/ui_button_img.slint";
 
 
 
-export component FieldsScreen inherits Rectangle {
+export component CropsScreen inherits Rectangle {
     callback go-back();
-    callback add-field();
-    callback save-field(
-        FieldData
+    callback add-crop();
+    callback save-crop(
+        CropData
     );
-    callback edit-field(
-        FieldData
+    callback edit-crop(
+        CropData
     );
-    callback delete-field(int);
+    callback delete-crop(int);
 
-    in-out property <int> selected-field-id: -1;
-    in-out property <bool> editing-field: false;
-    in property <bool> has-fields: false;
+    in-out property <int> selected-crop-id: -1;
+    in-out property <bool> editing-crop: false;
+    in property <bool> has-crops: false;
     in-out property <bool> show-form: false;
-    in property <[FieldData]> fields: [];
-    in-out property <FieldData> field;
+    in property <[CropData]> crops: [];
+    in-out property <CropData> crop;
     in-out property <Date> current-date;
     in-out property <bool> show-delete-dialog: false;
     in-out property <int> pending-delete-id: -1;
@@ -41,7 +41,7 @@ export component FieldsScreen inherits Rectangle {
         spacing: 16px;
 
         Text {
-            text: "Fields";
+            text: "Crops";
             font-size: 22px;
             font-weight: 700;
             color: #022817;
@@ -51,32 +51,32 @@ export component FieldsScreen inherits Rectangle {
 
         if !root.show-form: UiButton {
             
-            label: "+ Add Field";
+            label: "+ Add Crop";
             clicked => {
-                root.editing-field = false;
-                root.selected-field-id = -1;
-                root.field.id = 0;
-                root.field.name = "";
-                root.field.area = "";
-                root.field.area-unit = "m²";
-                root.field.crop = "";
-                root.field.planting-date = 
+                root.editing-crop = false;
+                root.selected-crop-id = -1;
+                root.crop.id = 0;
+                root.crop.name = "";
+                root.crop.area = "";
+                root.crop.area-unit = "m²";
+                root.crop.crop = "";
+                root.crop.planting-date = 
                     "\{root.current-date.year
                     }-\{root.current-date.month
                     }-\{root.current-date.day}";
-                root.field.status = "Fallow";
-                root.add-field();
+                root.crop.status = "Fallow";
+                root.add-crop();
             }
         }
 
-        if root.show-form: FieldForm {
-            editing: root.editing-field;
-            field <=> root.field;
-            save-field(
-                field
+        if root.show-form: CropForm {
+            editing: root.editing-crop;
+            crop <=> root.crop;
+            save-crop(
+                crop
             ) => {
-                root.save-field(
-                    field
+                root.save-crop(
+                    crop
                 );
             }
 
@@ -89,13 +89,13 @@ export component FieldsScreen inherits Rectangle {
             viewport-width: self.width;
             viewport-height: max(
                 self.height,
-                root.fields.length * 130px
+                root.crops.length * 130px
             );
 
             VerticalBox {
                 spacing: 10px;
 
-                if !root.has-fields: VerticalBox {
+                if !root.has-crops: VerticalBox {
                     alignment: center;
                     spacing: 8px;
 
@@ -105,13 +105,13 @@ export component FieldsScreen inherits Rectangle {
                     }
 
                     Text {
-                        text: "Tap + Add Field to register your first field.";
+                        text: "Tap + Add Crop to register your first crop.";
                         color: #59665c;
                         wrap: word-wrap;
                     }
                 }
 
-                for field in root.fields: Rectangle {
+                for crop in root.crops: Rectangle {
                     height: 120px;
                     background: #f4fff5;
                     border-radius: 8px;
@@ -121,7 +121,7 @@ export component FieldsScreen inherits Rectangle {
                         y: 10px;
                         width: parent.width - 24px;
                         height: parent.height - 20px;
-                        text: field.display-text;
+                        text: crop.display-text;
                         color: #022817;
                         wrap: word-wrap;
                         vertical-alignment: center;
@@ -132,31 +132,33 @@ export component FieldsScreen inherits Rectangle {
                             horizontal-stretch: 1;
                         }
                         VerticalBox {
-
+                            alignment: start;
                             UiButtonImg {
-                                width: 22px;
-                                height: 22px;
-                                img-height: 20px;
-                                img-width: 20px;
-                                img: @image-url("../Icons/Pencil/Pencil.png");
+                                width: 24px;
+                                height: 24px;
+                                img-height: 23px;
+                                img-width: 23px;
+                                colorize: #002000;
+                                img: @image-url("../Icons/Pencil/Pencil-Write-2.png");
                                 clicked => {
-                                    root.editing-field = true;
-                                    root.selected-field-id = field.id;
-                                    root.field = field;
-                                    root.edit-field(
-                                        field
+                                    root.editing-crop = true;
+                                    root.selected-crop-id = crop.id;
+                                    root.crop = crop;
+                                    root.edit-crop(
+                                        crop
                                         );
                                 }
                             }
 
                             UiButtonImg {
-                                width: 22px;
-                                height: 22px;
-                                img-height: 20px;
-                                img-width: 20px;
-                                img: @image-url("../Icons/Trash/Bin-Paper-2.png");
+                                width: 24px;
+                                height: 24px;
+                                img-height: 23px;
+                                img-width: 23px;
+                                colorize: #b00000;
+                                img: @image-url("../Icons/Trash/Trash-Bin-Circle.png");
                                 clicked => {
-                                    root.pending-delete-id = field.id;
+                                    root.pending-delete-id = crop.id;
                                     root.show-delete-dialog = true;
                                 }
                             }
@@ -170,7 +172,7 @@ export component FieldsScreen inherits Rectangle {
     if root.show-delete-dialog: ConfirmDialog {
         x: (parent.width - self.width) / 2;
         y: (parent.height - self.height) / 2;
-        width: 320px;
+        size: {x: 320px , y: 180px };
 
         title: "Delete record?";
         message: "This record will be permanently deleted. This action cannot be undone.";
@@ -181,7 +183,7 @@ export component FieldsScreen inherits Rectangle {
         }
 
         confirmed => {
-            root.delete-field(root.pending-delete-id);
+            root.delete-crop(root.pending-delete-id);
             root.show-delete-dialog = false;
             root.pending-delete-id = -1;
         }

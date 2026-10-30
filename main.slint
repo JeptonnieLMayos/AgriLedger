@@ -1,9 +1,9 @@
 import { HomeScreen } from "Screens/home.slint";
-import { FieldsScreen } from "Screens/fields.slint";
+import { CropsScreen } from "Screens/crops.slint";
 import { ReportsScreen } from "Screens/reports.slint";
 import { VerticalBox, HorizontalBox, Date, Button } from "std-widgets.slint";
 import { UiButtonImg } from "UI/ui_button_img.slint";
-import { FieldData } from "models/field_data.slint";
+import { CropData } from "models/crop_data.slint";
 import { ActivitiesScreen } from "Screens/activities.slint";
 import { HarvestScreen } from "Screens/harvest.slint";
 
@@ -23,18 +23,19 @@ export component MainWindow inherits Window {
         height: root.height;
 
         source: @image-url("Images/cartoon_leaf_background_small.png");
+        opacity: 0.35;
         horizontal-tiling: repeat;
         vertical-tiling: repeat;
     }
     in-out property <string> current-screen: "home";
-    in-out property <bool> has-fields: false;
-    in-out property <bool> show-field-form: false;
-    in property <[FieldData]> fields: [];
-    in-out property <FieldData> field;
+    in-out property <bool> has-crops: false;
+    in-out property <bool> show-crop-form: false;
+    in property <[CropData]> crops: [];
+    in-out property <CropData> crop;
     in-out property <Date> current-date;
 
-    callback save-field(FieldData);
-    callback delete-field(int);
+    callback save-crop(CropData);
+    callback delete-crop(int);
     
     VerticalBox {
         padding: 0px;
@@ -77,15 +78,37 @@ export component MainWindow inherits Window {
                             width: 32px;
                             image-fit: contain;
                             }
-        
-                        Text {
-                            text: "AgriLedger";
-                            color: #002208;
-                            font-size: 16px;
-                            font-weight: 800;
-                            horizontal-alignment: left;
-                            vertical-alignment: bottom;
-                            wrap: word-wrap;
+                        VerticalBox {
+                            padding: 0px;
+                            spacing: 0px;
+                            alignment: start;
+                            Text {
+                                text: "  AgriLedger";
+                                color: #002208;
+                                font-size: 16px;
+                                font-weight: 800;
+                                horizontal-alignment: left;
+                                vertical-alignment: bottom;
+                                wrap: word-wrap;
+                            }
+                            Text {
+                                text: "    Developed by KumaDeV";
+                                color: #002208;
+                                font-size: 7.5px;
+                                font-weight: 800;
+                                horizontal-alignment: left;
+                                vertical-alignment: bottom;
+                                wrap: word-wrap;
+                            }
+                            Text {
+                                text: "Independent software project";
+                                color: #002208;
+                                font-size: 7.5px;
+                                font-weight: 800;
+                                horizontal-alignment: left;
+                                vertical-alignment: bottom;
+                                wrap: word-wrap;
+                            }
                         }
                     }
         
@@ -120,35 +143,35 @@ export component MainWindow inherits Window {
         spacing: 16px;
 
         if root.current-screen == "home": HomeScreen {
-            open-fields => {
-                root.current-screen = "fields";
+            open-crops => {
+                root.current-screen = "crops";
             }
             open-reports => {
                 root.current-screen = "reports";
             }
         }
 
-        if root.current-screen == "fields": FieldsScreen {
-            has-fields: root.has-fields;
-            show-form <=> root.show-field-form;
-            fields <=> root.fields;
+        if root.current-screen == "crops": CropsScreen {
+            has-crops: root.has-crops;
+            show-form <=> root.show-crop-form;
+            crops <=> root.crops;
             current-date: root.current-date;
 
-            add-field => {
-                root.show-field-form = true;
+            add-crop => {
+                root.show-crop-form = true;
             }
 
-            save-field(field) => {
-                root.save-field(field);
+            save-crop(crop) => {
+                root.save-crop(crop);
             }
 
-            edit-field(field) => {
-                root.field = field;
-                root.show-field-form = true;
+            edit-crop(crop) => {
+                root.crop = crop;
+                root.show-crop-form = true;
             }
-            delete-field(id) => {
-                // Forward the selected field ID to the Rust backend.
-                root.delete-field(id);
+            delete-crop(id) => {
+                // Forward the selected crop ID to the Rust backend.
+                root.delete-crop(id);
             }
         }
 
@@ -212,7 +235,7 @@ Rectangle {
                 height: 64px;
                 img: @image-url("Icons/Sprout/Sprout.png");
                 clicked => {
-                    root.current-screen = "fields";
+                    root.current-screen = "crops";
                 }
             }
 

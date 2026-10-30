@@ -23,7 +23,7 @@ fn android_main(app: slint::android::AndroidApp) {
 
     let window = MainWindow::new().unwrap();
 
-    refresh_fields(&window, &conn).unwrap();
+    refresh_crops(&window, &conn).unwrap();
 
     let weak_window = window.as_weak();
 
@@ -41,40 +41,40 @@ fn android_main(app: slint::android::AndroidApp) {
     eprintln!("Date set in Slint: {}-{}-{}", date.year, date.month, date.day);
     // current date
 
-    window.on_save_field(move |field| {
-        let area = match field.area.trim().parse::<f64>() {
+    window.on_save_crop(move |crop| {
+        let area = match crop.area.trim().parse::<f64>() {
             Ok(value) if value.is_finite() && value > 0.0 => value,
             _ => {
-                eprintln!("Field area must be a valid number greater than zero."); // log
+                eprintln!("crop area must be a valid number greater than zero."); // log
                 return;
             }
         };
 
-        if field.name.trim().is_empty() {
-            eprintln!("Field name is required.");  // log
+        if crop.name.trim().is_empty() {
+            eprintln!("crop name is required.");  // log
             return;
         }
 
-        let result = if field.id > 0 {
-            db::update_field(
+        let result = if crop.id > 0 {
+            db::update_crop(
                 &conn,
-                field.id as i64,
-                field.name.trim(),
+                crop.id as i64,
+                crop.name.trim(),
                 area,
-                field.area_unit.as_str(),
-                field.crop.as_str(),
-                field.planting_date.as_str(),
-                field.status.as_str(),
+                crop.area_unit.as_str(),
+                crop.crop.as_str(),
+                crop.planting_date.as_str(),
+                crop.status.as_str(),
             )
         } else {
-            db::insert_field(
+            db::insert_crop(
                 &conn,
-                field.name.trim(),
+                crop.name.trim(),
                 area,
-                field.area_unit.as_str(),
-                field.crop.as_str(),
-                field.planting_date.as_str(),
-                field.status.as_str(),
+                crop.area_unit.as_str(),
+                crop.crop.as_str(),
+                crop.planting_date.as_str(),
+                crop.status.as_str(),
             )
             .map(|_| true)
         };
@@ -82,20 +82,20 @@ fn android_main(app: slint::android::AndroidApp) {
         match result {
             Ok(true) => {}
             Ok(false) => {
-                eprintln!("No field was updated. It may have been deleted.");  // log
+                eprintln!("No crop was updated. It may have been deleted.");  // log
                 return;
             }
             Err(error) => {
-                eprintln!("Could not save field: {error}");  // log
+                eprintln!("Could not save crop: {error}");  // log
                 return;
             }
         }
 
         if let Some(window) = weak_window.upgrade() {
-            if let Err(error) = refresh_fields(&window, &conn) {
-                eprintln!("Could not refresh fields: {error}");  // log
+            if let Err(error) = refresh_crops(&window, &conn) {
+                eprintln!("Could not refresh crops: {error}");  // log
             } else {
-                window.set_show_field_form(false);
+                window.set_show_crop_form(false);
             }
         }
     });
@@ -103,20 +103,20 @@ fn android_main(app: slint::android::AndroidApp) {
     let delete_conn = db::initialize(&db_path).unwrap();
     let delete_weak_window = window.as_weak();
 
-    window.on_delete_field(move |id| {
-        match db::delete_field(&delete_conn, id as i64) {
+    window.on_delete_crop(move |id| {
+        match db::delete_crop(&delete_conn, id as i64) {
             Ok(true) => {
                 if let Some(window) = delete_weak_window.upgrade() {
-                    if let Err(error) = refresh_fields(&window, &delete_conn) {
-                        eprintln!("Could not refresh fields: {error}");  // log
+                    if let Err(error) = refresh_crops(&window, &delete_conn) {
+                        eprintln!("Could not refresh crops: {error}");  // log
                     }
                 }
             }
             Ok(false) => {
-                eprintln!("No field was deleted. It may already be gone.");
+                eprintln!("No crop was deleted. It may already be gone.");
             }
             Err(error) => {
-                eprintln!("Could not delete field: {error}");
+                eprintln!("Could not delete crop: {error}");
             }
         }
     });
@@ -124,49 +124,49 @@ fn android_main(app: slint::android::AndroidApp) {
     window.run().unwrap();
 }
 
-fn refresh_fields(
+fn refresh_crops(
     window: &MainWindow,
     conn: &rusqlite::Connection,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let fields = db::get_fields(conn)?;
+    let crops = db::get_crops(conn)?;
 
-    window.set_has_fields(!fields.is_empty());
+    window.set_has_crops(!crops.is_empty());
 
-    let model: Vec<FieldData> = fields
+    let model: Vec<CropData> = crops
         .into_iter()
-        .map(|field| {
+        .map(|crop| {
             let display_text = format!(
                 "{}\nArea: {} {}\nCrop: {}\nPlanted: {}\nStatus: {}",
-                field.name,
-                field.area,
-                field.area_unit,
-                if field.crop.is_empty() {
+                crop.name,
+                crop.area,
+                crop.area_unit,
+                if crop.crop.is_empty() {
                     "Not specified"
                 } else {
-                    &field.crop
+                    &crop.crop
                 },
-                if field.planting_date.is_empty() {
+                if crop.planting_date.is_empty() {
                     "Not specified"
                 } else {
-                    &field.planting_date
+                    &crop.planting_date
                 },
-                field.status
+                crop.status
             );
 
-            FieldData {
-                id: field.id as i32,
-                name: field.name.into(),
-                area: field.area.to_string().into(),
-                area_unit: field.area_unit.into(),
-                crop: field.crop.into(),
-                planting_date: field.planting_date.into(),
-                status: field.status.into(),
+            CropData {
+                id: crop.id as i32,
+                name: crop.name.into(),
+                area: crop.area.to_string().into(),
+                area_unit: crop.area_unit.into(),
+                crop: crop.crop.into(),
+                planting_date: crop.planting_date.into(),
+                status: crop.status.into(),
                 display_text: display_text.into(),
             }
         })
         .collect();
 
-    window.set_fields(ModelRc::new(VecModel::from(model)));
+    window.set_crops(ModelRc::new(VecModel::from(model)));
 
     Ok(())
 }

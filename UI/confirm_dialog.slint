@@ -3,6 +3,7 @@ export component ConfirmDialog inherits Rectangle {
     in property <string> message: "Are you sure you want to delete this record?";
     in property <string> confirm-text: "Delete";
     in property <string> cancel-text: "Cancel";
+    in property <Point> size: { x: 80px, y: 40px };
 
     callback confirmed();
     callback cancelled();
@@ -11,7 +12,8 @@ export component ConfirmDialog inherits Rectangle {
     border-radius: 16px;
     border-width: 1px;
     border-color: #d8e2d9;
-
+    height: size.y;
+    width: size.x;
     VerticalLayout {
         padding: 20px;
         spacing: 14px;
