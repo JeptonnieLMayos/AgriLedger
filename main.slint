@@ -7,7 +7,13 @@ import { CropData } from "models/crop_data.slint";
 import { ActivitiesScreen } from "Screens/activities.slint";
 import { HarvestScreen } from "Screens/harvest.slint";
 
-
+component ActiveTabIndicator inherits Rectangle {
+    in property <length> _height: 3px;
+    in property <color> _background: #15462d;
+    in property <bool> active;
+    background:  active ? _background : transparent;
+    height: _height;
+}
 
 export component MainWindow inherits Window {
     title: "AgriLedger";
@@ -220,49 +226,80 @@ Rectangle {
         HorizontalLayout {
             padding: 8px;
             spacing: 0px;
-    
-            UiButtonImg {
-                width: 20%;
-                height: 64px;
-                img: @image-url("Icons/Home/Bird-House.png");
-                clicked => {
-                    root.current-screen = "home";
+            
+            VerticalLayout {
+                // alignment: center;
+                UiButtonImg {
+                    width: 20%;
+                    height: 64px;
+                    // cross-axis-self-alignment: center;
+                    img: @image-url("Icons/Home/Bird-House.png");
+                    clicked => {
+                        root.current-screen = "home";
+                    }
+                }
+                ActiveTabIndicator {
+                    active: current-screen == "home" ? true : false;
                 }
             }
-    
-            UiButtonImg {
-                width: 20%;
-                height: 64px;
-                img: @image-url("Icons/Sprout/Sprout.png");
-                clicked => {
-                    root.current-screen = "crops";
+            
+            VerticalLayout {
+                UiButtonImg {
+                    width: 20%;
+                    height: 64px;
+                    // cross-axis-self-alignment: center;
+                    img: @image-url("Icons/Sprout/Sprout.png");
+                    clicked => {
+                        root.current-screen = "crops";
+                    }
+                }
+                ActiveTabIndicator {
+                    active: current-screen == "crops" ? true : false;
                 }
             }
 
-            UiButtonImg {
-                width: 20%;
-                height: 64px;
-                img: @image-url("Icons/List/Task-List.png");
-                clicked => {
-                    root.current-screen = "activities";
+            VerticalLayout {
+                UiButtonImg {
+                    width: 20%;
+                    height: 64px;
+                    // cross-axis-self-alignment: center;
+                    img: @image-url("Icons/List/Task-List.png");
+                    clicked => {
+                        root.current-screen = "activities";
+                    }
+                }
+                ActiveTabIndicator {
+                    active: current-screen == "activities" ? true : false;
                 }
             }
 
-            UiButtonImg {
+            VerticalLayout {
+                UiButtonImg {
                 width: 20%;
                 height: 64px;
-                img: @image-url("Icons/Wheat/Wheat.png");
-                clicked => {
-                    root.current-screen = "harvest";
+                    // cross-axis-self-alignment: center;
+                    img: @image-url("Icons/Wheat/Wheat.png");
+                    clicked => {
+                        root.current-screen = "harvest";
+                    }
+                }
+                ActiveTabIndicator {
+                    active: current-screen == "harvest" ? true : false;
                 }
             }
-    
-            UiButtonImg {
-                width: 20%;
-                height: 64px;
-                img: @image-url("Icons/Graph/Graph-Stats.png");
-                clicked => {
-                    root.current-screen = "reports";
+
+            VerticalLayout {
+                UiButtonImg {
+                    width: 20%;
+                    height: 64px;
+                    // cross-axis-self-alignment: center;
+                    img: @image-url("Icons/Graph/Graph-Stats.png");
+                    clicked => {
+                        root.current-screen = "reports";
+                    }
+                }
+                ActiveTabIndicator {
+                    active: current-screen == "reports" ? true : false;
                 }
             }
     
