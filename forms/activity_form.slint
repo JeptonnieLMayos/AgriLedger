@@ -35,7 +35,6 @@ export component ActivityForm inherits VerticalBox {
 
 
     UILineEdit {
-        // _text <=> root.activity.category;
     }
 
 
@@ -47,7 +46,6 @@ export component ActivityForm inherits VerticalBox {
 
 
     UILineEdit {
-        // _text <=> root.activity.description;
     }
 
     Text {
@@ -56,7 +54,6 @@ export component ActivityForm inherits VerticalBox {
     }
 
     UILineEdit {
-        // _text <=> root.activity.crop-id;
     }
 
     Text {
@@ -65,7 +62,6 @@ export component ActivityForm inherits VerticalBox {
     }
 
     UILineEdit {
-        // _text <=> root.activity.activity;
     }
 
     Text {
@@ -83,7 +79,6 @@ export component ActivityForm inherits VerticalBox {
 
     UIComboBox {
         _model: ["Growing", "Harvested", "Fallow", "Prepared"];
-        // _current-value <=> root.activity.status;
     }
 
         Text {
@@ -93,7 +88,6 @@ export component ActivityForm inherits VerticalBox {
 
     UIComboBox {
         _model: ["Growing", "Harvested", "Fallow", "Prepared"];
-        // _current-value <=> root.activity.status;
     }
 
     Text {
@@ -102,18 +96,11 @@ export component ActivityForm inherits VerticalBox {
     }
 
     UILineEdit {
-        // _text <=> root.activity.activity;
     }
 
     UiButton {
         label: root.editing ? "Save Changes" : "Save";
         clicked => {
-            // if root.activity.name != "" &&
-            //     root.activity.area != "" {
-            //     root.save-activity(
-            //         activity
-            //     );
-            // }
         }
     }
 
