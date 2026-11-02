@@ -1,26 +1,106 @@
 
-import { VerticalBox } from "std-widgets.slint";
+import { VerticalBox, Date } from "std-widgets.slint";
 import { UiButton } from "../UI/ui_button.slint";
+import { ActivityForm } from "../forms/activity_form.slint";
+import { ActivityData } from "../models/activity_data.slint";
+import { ScreenState } from "../models/screen_state.slint";
 
 export component ActivitiesScreen inherits Rectangle {
     callback go-back();
+    callback add-activity();
+    callback save-activity( ActivityData );
+    callback edit-activity( ActivityData );
+    callback delete-activity( int );
 
-    background: #afecba;
+    in property <Date> current-date;
+    in-out property <ScreenState> screen: {
+        selected-id: -1,
+        is-editing: false,
+        show-delete-dialog: false,
+        pending-delete-id: -1
+    };
 
-    VerticalBox {
+    in-out property <bool> has-items: false;
+    in-out property <bool> show-form: false;
+    in property <[ActivityData]> activities: [];
+    in-out property <ActivityData> activity;
+
+    if !root.show-form: UiButton {
+        x: root.width - self.width ;
+        y: root.height;
+        corner-radius: 50px;
+        width: 44px;
+        label: "+";
+        _font-size: 1.5rem;
+        clicked => {
+            root.screen.is-editing = false;
+            root.screen.selected-id = -1;
+            root.activity.id = 0;
+            root.activity.category = "Planting";
+            root.activity.description = "";
+            root.activity.crop-id = 1;
+            root.activity.material-id = 0;
+            root.activity.scheduled-at = 
+                "\{root.current-date.year
+                }-\{root.current-date.month
+                }-\{root.current-date.day}";
+            root.activity.status = "";
+            root.activity.started-at = "";
+            root.activity.completed-at = "";
+            root.activity.notes = "";
+            root.add-activity();
+        }
+    }
+    
+   VerticalBox {
         padding: 24px;
         spacing: 16px;
-
         Text {
             text: "Activities";
             font-size: 18px;
             font-weight: 700;
             color: #022817;
         }
-        Text {
-            text: "Planting, weeding, watering, fertilizing, Pruning, Watering, Fertilizing, Land preparation, Harvesting.";
+
+        if root.show-form: ActivityForm {
+            editing: root.screen.is-editing;
+            activity <=> root.activity;
+            save-activity(activity) => {
+                root.save-activity(activity);
+            }
+
+            cancel => {
+                root.show-form = false;
+            }
         }
 
+        if !root.show-form: VerticalBox {
+
+            HorizontalLayout {
+                spacing: 2px;
+                UiButton {
+                    label: "All";
+                }
+                UiButton {
+                    label: "Upcomming";
+                }
+                UiButton {
+                    label: "Completed";
+                }
+            }
+            Rectangle {
+                border-radius: 8px;
+                border-color: darkgreen;
+                border-width: 1px;
+                VerticalLayout {
+    
+                    Text {
+                        text: "Planting, weeding, watering, fertilizing, Pruning, Watering, Fertilizing, Land preparation, Harvesting.";
+                    }
+                    
+                }
+            }
+        }
     }
 }
 

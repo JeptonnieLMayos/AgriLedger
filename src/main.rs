@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir_all(&data_dir)?;
 
     let db_path = data_dir.join("agriledger.db");
-    let conn = db::initialize(&db_path)?;
+    let conn = db::initialize::initialize(&db_path)?;
 
 
     let window = MainWindow::new()?;
@@ -31,10 +31,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         month: now.month() as i32,
         day: now.day() as i32,
     });
-
-
-    let date = window.get_current_date();
-    eprintln!("Date set in Slint: {}-{}-{}", date.year, date.month, date.day);
     // current date
 
     window.on_save_crop(move |crop| {
@@ -52,7 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         let result = if crop.id > 0 {
-            db::update_crop(
+            db::crops::update_crop(
                 &conn,
                 crop.id as i64,
                 crop.name.trim(),
@@ -63,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 crop.status.as_str(),
             )
         } else {
-            db::insert_crop(
+            db::crops::insert_crop(
                 &conn,
                 crop.name.trim(),
                 area,
@@ -95,11 +91,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    let delete_conn = db::initialize(&db_path)?;
+    let delete_conn = db::initialize::initialize(&db_path)?;
     let delete_weak_window = window.as_weak();
 
     window.on_delete_crop(move |id| {
-        match db::delete_crop(&delete_conn, id as i64) {
+        match db::crops::delete_crop(&delete_conn, id as i64) {
             Ok(true) => {
                 if let Some(window) = delete_weak_window.upgrade() {
                     if let Err(error) = refresh_crops(&window, &delete_conn) {
@@ -125,7 +121,7 @@ fn refresh_crops(
     window: &MainWindow,
     conn: &rusqlite::Connection,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let crops = db::get_crops(conn)?;
+    let crops = db::crops::get_crops(conn)?;
 
     window.set_has_crops(!crops.is_empty());
 

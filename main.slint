@@ -6,6 +6,8 @@ import { UiButtonImg } from "UI/ui_button_img.slint";
 import { CropData } from "models/crop_data.slint";
 import { ActivitiesScreen } from "Screens/activities.slint";
 import { HarvestScreen } from "Screens/harvest.slint";
+import { ScreenState } from "models/screen_state.slint";
+import { ActivityData } from "models/activity_data.slint";
 
 component ActiveTabIndicator inherits Rectangle {
     in property <length> _height: 3px;
@@ -33,15 +35,24 @@ export component MainWindow inherits Window {
         horizontal-tiling: repeat;
         vertical-tiling: repeat;
     }
+
     in-out property <string> current-screen: "home";
+
     in-out property <bool> has-crops: false;
     in-out property <bool> show-crop-form: false;
     in property <[CropData]> crops: [];
     in-out property <CropData> crop;
-    in-out property <Date> current-date;
-
     callback save-crop(CropData);
     callback delete-crop(int);
+    
+    in-out property <bool> has-activities: false;
+    in-out property <bool> show-activity-form: false;
+    in property <[ActivityData]> activities: [];
+    in-out property <ActivityData> activity;
+    callback save-activity(ActivityData);
+    callback delete-activity(int);
+    
+    in-out property <Date> current-date;
     
     VerticalBox {
         padding: 0px;
@@ -147,6 +158,7 @@ export component MainWindow inherits Window {
         padding: 24px;
         padding-top: 32px;
         spacing: 16px;
+        alignment: start;
 
         if root.current-screen == "home": HomeScreen {
             open-crops => {
@@ -158,7 +170,7 @@ export component MainWindow inherits Window {
         }
 
         if root.current-screen == "crops": CropsScreen {
-            has-crops: root.has-crops;
+            has-items: root.has-crops;
             show-form <=> root.show-crop-form;
             crops <=> root.crops;
             current-date: root.current-date;
@@ -176,13 +188,31 @@ export component MainWindow inherits Window {
                 root.show-crop-form = true;
             }
             delete-crop(id) => {
-                // Forward the selected crop ID to the Rust backend.
                 root.delete-crop(id);
             }
         }
 
         if root.current-screen == "activities": ActivitiesScreen {
+            has-items: root.has-activities;
+            show-form <=> root.show-activity-form;
+            activities <=> root.activities;
+            current-date: root.current-date;
 
+            add-activity => {
+                root.show-activity-form = true;
+            }
+
+            save-activity(activity) => {
+                root.save-activity(activity);
+            }
+
+            edit-activity(activity) => {
+                root.activity = activity;
+                root.show-activity-form = true;
+            }
+            delete-activity(id) => {
+                root.delete-activity(id);
+            }
         }
 
         if root.current-screen == "harvest": HarvestScreen {
@@ -212,8 +242,6 @@ export component MainWindow inherits Window {
         
     }
 
-
-
 Rectangle {
     height: 96px;
     background: #cdd6c9;
@@ -222,17 +250,14 @@ Rectangle {
     drop-shadow-offset-y: -1px;
     VerticalLayout {
         padding: 0px;
-
         HorizontalLayout {
             padding: 8px;
             spacing: 0px;
             
             VerticalLayout {
-                // alignment: center;
                 UiButtonImg {
                     width: 20%;
                     height: 64px;
-                    // cross-axis-self-alignment: center;
                     img: @image-url("Icons/Home/Bird-House.png");
                     clicked => {
                         root.current-screen = "home";
@@ -247,7 +272,6 @@ Rectangle {
                 UiButtonImg {
                     width: 20%;
                     height: 64px;
-                    // cross-axis-self-alignment: center;
                     img: @image-url("Icons/Sprout/Sprout.png");
                     clicked => {
                         root.current-screen = "crops";
@@ -262,7 +286,6 @@ Rectangle {
                 UiButtonImg {
                     width: 20%;
                     height: 64px;
-                    // cross-axis-self-alignment: center;
                     img: @image-url("Icons/List/Task-List.png");
                     clicked => {
                         root.current-screen = "activities";
@@ -277,7 +300,6 @@ Rectangle {
                 UiButtonImg {
                 width: 20%;
                 height: 64px;
-                    // cross-axis-self-alignment: center;
                     img: @image-url("Icons/Wheat/Wheat.png");
                     clicked => {
                         root.current-screen = "harvest";
@@ -292,7 +314,6 @@ Rectangle {
                 UiButtonImg {
                     width: 20%;
                     height: 64px;
-                    // cross-axis-self-alignment: center;
                     img: @image-url("Icons/Graph/Graph-Stats.png");
                     clicked => {
                         root.current-screen = "reports";

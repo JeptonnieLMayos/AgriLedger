@@ -5,6 +5,9 @@ export component UiButton inherits Rectangle {
     in property <length> button-height: 44px;
     in property <length> corner-radius: 8px;
 
+    in property <length> _font-size: 0rem;
+
+
     callback clicked();
 
     background: button-color;
@@ -16,6 +19,7 @@ export component UiButton inherits Rectangle {
         color: text-color;
         horizontal-alignment: center;
         vertical-alignment: center;
+        font-size: _font-size;
     }
 
     TouchArea {

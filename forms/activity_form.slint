@@ -1,0 +1,127 @@
+import { VerticalBox, Date } from "std-widgets.slint";
+import { UiButton } from "../UI/ui_button.slint";
+import { UILineEdit } from "../UI/ui_line_edit.slint";
+import { UIComboBox } from "../UI/ui_combo_box.slint";
+import { UIDatePicker } from "../UI/ui_date_picker.slint";
+import { ActivityData } from "../models/activity_data.slint";
+import { ActivityMaterialData } from "../models/activity_material_data.slint";
+
+export component ActivityForm inherits VerticalBox {
+    callback save-activity(
+        ActivityData,
+        ActivityMaterialData
+    );
+    callback cancel();
+    
+    spacing: 10px;
+
+    in property <Date> current-date;
+    in property <bool> editing: false;
+    in-out property <ActivityData> activity;
+    in-out property <ActivityMaterialData> materials; 
+
+
+    Text {
+        text: root.editing ? "Edit" : "New";
+        font-size: 18px;
+        font-weight: 700;
+        color: #022817;
+    }
+
+    Text {
+        text: "Category";
+        color: #022817;
+    }
+
+
+    UILineEdit {
+        // _text <=> root.activity.category;
+    }
+
+
+
+    Text {
+        text: "Description";
+        color: #022817;
+    }
+
+
+    UILineEdit {
+        // _text <=> root.activity.description;
+    }
+
+    Text {
+        text: "Crop Name";
+        color: #022817;
+    }
+
+    UILineEdit {
+        // _text <=> root.activity.crop-id;
+    }
+
+    Text {
+        text: "Scheduled";
+        color: #022817;
+    }
+
+    UILineEdit {
+        // _text <=> root.activity.activity;
+    }
+
+    Text {
+        text: "Status";
+        color: #022817;
+    }
+
+    UIDatePicker {
+    }
+
+    Text {
+        text: "Started At";
+        color: #022817;
+    }
+
+    UIComboBox {
+        _model: ["Growing", "Harvested", "Fallow", "Prepared"];
+        // _current-value <=> root.activity.status;
+    }
+
+        Text {
+        text: "Completed At";
+        color: #022817;
+    }
+
+    UIComboBox {
+        _model: ["Growing", "Harvested", "Fallow", "Prepared"];
+        // _current-value <=> root.activity.status;
+    }
+
+    Text {
+    text: "notes";
+    color: #022817;
+    }
+
+    UILineEdit {
+        // _text <=> root.activity.activity;
+    }
+
+    UiButton {
+        label: root.editing ? "Save Changes" : "Save";
+        clicked => {
+            // if root.activity.name != "" &&
+            //     root.activity.area != "" {
+            //     root.save-activity(
+            //         activity
+            //     );
+            // }
+        }
+    }
+
+    UiButton {
+        label: "Cancel";
+        button-color: #59665c;
+        clicked => {
+            root.cancel();
+        }
+    }
+}
