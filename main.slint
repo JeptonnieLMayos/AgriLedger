@@ -161,12 +161,7 @@ export component MainWindow inherits Window {
         alignment: start;
 
         if root.current-screen == "home": HomeScreen {
-            open-crops => {
-                root.current-screen = "crops";
-            }
-            open-reports => {
-                root.current-screen = "reports";
-            }
+
         }
 
         if root.current-screen == "crops": CropsScreen {

@@ -14,14 +14,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir_all(&data_dir)?;
 
     let db_path = data_dir.join("agriledger.db");
-    let conn = db::initialize::initialize(&db_path)?;
+    let crop_conn = db::initialize::initialize(&db_path)?;
+    let activity_conn = db::initialize::initialize(&db_path)?;
 
 
     let window = MainWindow::new()?;
 
-    refresh_crops(&window, &conn)?;
+    refresh_crops(&window, &crop_conn)?;
+    refresh_activities(&window, &activity_conn)?;
+    
+    let crop_weak_window = window.as_weak();
+    let activity_weak_window = window.as_weak();
 
-    let weak_window = window.as_weak();
+    let delete_crop_conn = db::initialize::initialize(&db_path)?;
+    let delete_crop_weak_window = window.as_weak();
+    let delete_activity_conn = db::initialize::initialize(&db_path)?;
+    let delete_activity_weak_window = window.as_weak();
 
     // current date
     let now = chrono::Local::now().date_naive();
@@ -49,7 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let result = if crop.id > 0 {
             db::crops::update_crop(
-                &conn,
+                &crop_conn,
                 crop.id as i64,
                 crop.name.trim(),
                 area,
@@ -60,7 +68,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
         } else {
             db::crops::insert_crop(
-                &conn,
+                &crop_conn,
                 crop.name.trim(),
                 area,
                 crop.area_unit.as_str(),
@@ -83,23 +91,96 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
-        if let Some(window) = weak_window.upgrade() {
-            match refresh_crops(&window, &conn) {
+        if let Some(window) = crop_weak_window.upgrade() {
+            match refresh_crops(&window, &crop_conn) {
                 Ok(()) => window.set_show_crop_form(false),
                 Err(error) => eprintln!("Could not refresh crops: {error}"),
             }
         }
     });
 
-    let delete_conn = db::initialize::initialize(&db_path)?;
-    let delete_weak_window = window.as_weak();
+    window.on_save_activity(move |activity| {
+
+        let result = if activity.id > 0 {
+            db::activities::update_activities(
+                &activity_conn,
+                activity.id as i64,
+                activity.category.as_str(),
+                activity.description.as_str(),
+                activity.crop_id as i64,
+                activity.material_id as i64,
+                activity.scheduled_at.as_str(),
+                activity.status.as_str(),
+                activity.started_at.as_str(),
+                activity.completed_at.as_str(),
+                activity.notes.as_str(),
+                activity.created_at.as_str(),
+                activity.updated_at.as_str()
+            )
+        } else {
+            db::activities::insert_activity(
+                &activity_conn,
+                activity.category.as_str(),
+                activity.description.as_str(),
+                activity.crop_id as i64,
+                activity.material_id as i64,
+                activity.scheduled_at.as_str(),
+                activity.status.as_str(),
+                activity.started_at.as_str(),
+                activity.completed_at.as_str(),
+                activity.notes.as_str(),
+                activity.created_at.as_str(),
+                activity.updated_at.as_str()
+            )
+            .map(|_| true)
+        };
+
+        match result {
+            Ok(true) => {}
+            Ok(false) => {
+                eprintln!("No activity was updated. The selected activity may no longer exist.");  // log
+                return;
+            }
+            Err(error) => {
+                eprintln!("Could not save activity: {error}");  // log
+                return;
+            }
+        }
+
+        if let Some(window) = activity_weak_window.upgrade() {
+            match refresh_activities(&window, &activity_conn) {
+                Ok(()) => window.set_show_activity_form(false),
+                Err(error) => eprintln!("Could not refresh activities: {error}"),
+            }
+        }
+    });
+
+
 
     window.on_delete_crop(move |id| {
-        match db::crops::delete_crop(&delete_conn, id as i64) {
+        match db::crops::delete_crop(&delete_crop_conn, id as i64) {
             Ok(true) => {
-                if let Some(window) = delete_weak_window.upgrade() {
-                    if let Err(error) = refresh_crops(&window, &delete_conn) {
+                if let Some(window) = delete_crop_weak_window.upgrade() {
+                    if let Err(error) = refresh_crops(&window, &delete_crop_conn) {
                         eprintln!("Could not refresh crops: {error}");  // log
+                    }
+                }
+            }
+            Ok(false) => {
+                eprintln!("No crop was deleted. ID: {id}");
+            }
+            Err(error) => {
+                eprintln!("Could not delete crop: {error}");
+            }
+        }
+    });
+
+    window.on_delete_activity(move |id| {
+        match db::activities::delete_activity(&delete_activity_conn, id as i64) {
+            Ok(true) => {
+                if let Some(window) = delete_activity_weak_window.upgrade() {
+                    if let Err(error) = refresh_activities(&window, &delete_activity_conn) {
+                        eprintln!("Could not refresh activities: {error}");  // log
                     }
                 }
             }
@@ -152,6 +233,47 @@ fn refresh_crops(
         .collect();
 
     window.set_crops(ModelRc::new(VecModel::from(model)));
+
+    Ok(())
+}
+
+fn refresh_activities(
+    window: &MainWindow,
+    conn: &rusqlite::Connection,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let activities = db::activities::get_activities(conn)?;
+
+    window.set_has_activities(!activities.is_empty());
+
+    let model: Vec<ActivityData> = activities
+        .into_iter()
+        .map(|activity| {
+            let display_text = format!(
+            "\nCategory: {}\nDescription: {}\nNotes: {}\nStatus: {}",
+            activity.category,
+            activity.description,
+            activity.notes,
+            activity.status
+            );
+
+            ActivityData {
+                id: activity.id as i32,
+                category: activity.category.into(),
+                description: activity.description.into(),
+                crop_id: activity.crop_id as i32,
+                material_id: activity.material_id as i32,
+                scheduled_at: activity.scheduled_at.into(),
+                status: activity.status.into(),
+                started_at: activity.started_at.into(),
+                completed_at: activity.completed_at.into(),
+                notes: activity.notes.into(),
+                created_at: activity.created_at.into(),
+                updated_at: activity.updated_at.into()
+            }
+        })
+        .collect();
+
+    window.set_activities(ModelRc::new(VecModel::from(model)));
 
     Ok(())
 }

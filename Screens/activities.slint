@@ -48,6 +48,10 @@ export component ActivitiesScreen inherits Rectangle {
             root.activity.started-at = "";
             root.activity.completed-at = "";
             root.activity.notes = "";
+            root.activity.created-at =  
+                "\{root.current-date.year
+                }-\{root.current-date.month
+                }-\{root.current-date.day}";
             root.add-activity();
         }
     }
@@ -66,7 +70,24 @@ export component ActivitiesScreen inherits Rectangle {
             editing: root.screen.is-editing;
             activity <=> root.activity;
             save-activity(activity) => {
-                root.save-activity(activity);
+                let out = {
+                    id: activity.id,
+                    category: activity.category,
+                    description: activity.description,
+                    crop-id: activity.crop-id,
+                    material-id: activity.material-id,
+                    scheduled-at: activity.scheduled-at,
+                    status: activity.started-at,
+                    started-at: activity.started-at,
+                    completed-at: activity.completed-at,
+                    notes: activity.notes,
+                    created-at: activity.created-at,
+                    updated-at:  
+                        "\{root.current-date.year
+                        }-\{root.current-date.month
+                        }-\{root.current-date.day}"
+                };
+                root.save-activity(out);
             }
 
             cancel => {

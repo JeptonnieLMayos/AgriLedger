@@ -8,8 +8,7 @@ import { ActivityMaterialData } from "../models/activity_material_data.slint";
 
 export component ActivityForm inherits VerticalBox {
     callback save-activity(
-        ActivityData,
-        ActivityMaterialData
+        ActivityData
     );
     callback cancel();
     
@@ -35,6 +34,7 @@ export component ActivityForm inherits VerticalBox {
 
 
     UILineEdit {
+        
     }
 
 
@@ -101,6 +101,7 @@ export component ActivityForm inherits VerticalBox {
     UiButton {
         label: root.editing ? "Save Changes" : "Save";
         clicked => {
+            save-activity(root.activity)
         }
     }
 
