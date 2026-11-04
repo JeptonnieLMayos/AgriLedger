@@ -1,9 +1,12 @@
 
-import { VerticalBox, Date } from "std-widgets.slint";
+import { VerticalBox, Date, HorizontalBox } from "std-widgets.slint";
 import { UiButton } from "../UI/ui_button.slint";
 import { ActivityForm } from "../forms/activity_form.slint";
 import { ActivityData } from "../models/activity_data.slint";
 import { ScreenState } from "../models/screen_state.slint";
+import { CropData } from "../models/crop_data.slint";
+import { UiButtonImg } from "../UI/ui_button_img.slint";
+import { ConfirmDialog } from "../UI/confirm_dialog.slint";
 
 export component ActivitiesScreen inherits Rectangle {
     callback go-back();
@@ -24,6 +27,7 @@ export component ActivitiesScreen inherits Rectangle {
     in-out property <bool> show-form: false;
     in property <[ActivityData]> activities: [];
     in-out property <ActivityData> activity;
+    in property <[string]> crop-names;
 
     if !root.show-form: UiButton {
         x: root.width - self.width ;
@@ -38,13 +42,10 @@ export component ActivitiesScreen inherits Rectangle {
             root.activity.id = 0;
             root.activity.category = "Planting";
             root.activity.description = "";
-            root.activity.crop-id = 1;
+            root.activity.crop-id = 0;
             root.activity.material-id = 0;
-            root.activity.scheduled-at = 
-                "\{root.current-date.year
-                }-\{root.current-date.month
-                }-\{root.current-date.day}";
-            root.activity.status = "";
+            root.activity.scheduled-at = "";
+            root.activity.status = "To Do";
             root.activity.started-at = "";
             root.activity.completed-at = "";
             root.activity.notes = "";
@@ -69,25 +70,9 @@ export component ActivitiesScreen inherits Rectangle {
         if root.show-form: ActivityForm {
             editing: root.screen.is-editing;
             activity <=> root.activity;
+            crop-names: root.crop-names;
             save-activity(activity) => {
-                let out = {
-                    id: activity.id,
-                    category: activity.category,
-                    description: activity.description,
-                    crop-id: activity.crop-id,
-                    material-id: activity.material-id,
-                    scheduled-at: activity.scheduled-at,
-                    status: activity.started-at,
-                    started-at: activity.started-at,
-                    completed-at: activity.completed-at,
-                    notes: activity.notes,
-                    created-at: activity.created-at,
-                    updated-at:  
-                        "\{root.current-date.year
-                        }-\{root.current-date.month
-                        }-\{root.current-date.day}"
-                };
-                root.save-activity(out);
+                root.save-activity(activity);
             }
 
             cancel => {
@@ -109,18 +94,97 @@ export component ActivitiesScreen inherits Rectangle {
                     label: "Completed";
                 }
             }
-            Rectangle {
-                border-radius: 8px;
-                border-color: darkgreen;
-                border-width: 1px;
-                VerticalLayout {
-    
-                    Text {
-                        text: "Planting, weeding, watering, fertilizing, Pruning, Watering, Fertilizing, Land preparation, Harvesting.";
+            if !show-form: Flickable {
+                VerticalBox {
+                    if !root.has-items: VerticalBox {
+                        Rectangle {
+                            border-radius: 8px;
+                            border-color: darkgreen;
+                            border-width: 1px;
+                            VerticalLayout {
+                
+                                Text {
+                                    text: "Planting, weeding, watering, fertilizing, Pruning, Watering, Fertilizing, Land preparation, Harvesting.";
+                                }
+                                
+                            }
+                        }
                     }
-                    
+
+                    for activity in root.activities: Rectangle {
+                        height: 120px;
+                        background: #f4fff5;
+                        border-radius: 8px;
+                        Text {
+                            x: 12px;
+                            y: 10px;
+                            width: parent.width - 24px;
+                            height: parent.height - 20px;
+                            text: activity.display-text;
+                            color: #022817;
+                            wrap: word-wrap;
+                            vertical-alignment: center;
+                        }
+                        
+                        HorizontalBox {
+                            Rectangle {
+                                horizontal-stretch: 1;
+                            }
+                            VerticalBox {
+                                alignment: start;
+                                UiButtonImg {
+                                    width: 24px;
+                                    height: 24px;
+                                    img-height: 23px;
+                                    img-width: 23px;
+                                    colorize: #002000;
+                                    img: @image-url("../Icons/Pencil/Pencil-Write-2.png");
+                                    clicked => {
+                                        root.screen.is-editing = true;
+                                        root.screen.selected-id = activity.id;
+                                        root.activity = activity;
+                                        root.edit-activity(
+                                            activity
+                                            );
+                                    }
+                                }
+    
+                                UiButtonImg {
+                                    width: 24px;
+                                    height: 24px;
+                                    img-height: 23px;
+                                    img-width: 23px;
+                                    colorize: #b00000;
+                                    img: @image-url("../Icons/Trash/Trash-Bin-Circle.png");
+                                    clicked => {
+                                        root.screen.pending-delete-id = activity.id;
+                                        root.screen.show-delete-dialog = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
+        }
+    }
+    if root.screen.show-delete-dialog: ConfirmDialog {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        size: {x: 320px , y: 180px };
+
+        title: "Delete record?";
+        message: "This record will be permanently deleted. This action cannot be undone.";
+
+        cancelled => {
+            root.screen.show-delete-dialog = false;
+            root.screen.pending-delete-id = -1;
+        }
+
+        confirmed => {
+            root.delete-activity(root.screen.pending-delete-id);
+            root.screen.show-delete-dialog = false;
+            root.screen.pending-delete-id = -1;
         }
     }
 }

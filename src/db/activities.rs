@@ -17,7 +17,7 @@ pub fn insert_activity(
 ) -> Result<()> {
     conn.execute(
         "INSERT INTO activities
-            (name, area, area_unit, crop, planting_date, status)
+            (category, description, crop_id, material_id, scheduled_at, status, started_at, completed_at, notes, created_at, updated_at)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
         (
             category,
@@ -102,7 +102,7 @@ pub fn update_activities(
     completed_at: &str,
     notes: &str,
     created_at: &str,
-    updated_at: &str 
+    updated_at: &str
 ) -> Result<bool> {
     let changed = conn.execute(
         "UPDATE activities
@@ -116,7 +116,7 @@ pub fn update_activities(
              completed_at = ?8,
              notes = ?9,
              created_at = ?10,
-             updated_at = ?11,
+             updated_at = ?11
          WHERE id = ?12",
         (
             category,
@@ -130,6 +130,7 @@ pub fn update_activities(
             notes,
             created_at,
             updated_at,
+            id
         ),
     )?;
 

@@ -1,10 +1,11 @@
-import { VerticalBox, Date } from "std-widgets.slint";
+import { VerticalBox, Date, ComboBox } from "std-widgets.slint";
 import { UiButton } from "../UI/ui_button.slint";
 import { UILineEdit } from "../UI/ui_line_edit.slint";
 import { UIComboBox } from "../UI/ui_combo_box.slint";
 import { UIDatePicker } from "../UI/ui_date_picker.slint";
 import { ActivityData } from "../models/activity_data.slint";
 import { ActivityMaterialData } from "../models/activity_material_data.slint";
+import { CropData } from "../models/crop_data.slint";
 
 export component ActivityForm inherits VerticalBox {
     callback save-activity(
@@ -17,6 +18,7 @@ export component ActivityForm inherits VerticalBox {
     in property <Date> current-date;
     in property <bool> editing: false;
     in-out property <ActivityData> activity;
+    in property <[string]> crop-names;
     in-out property <ActivityMaterialData> materials; 
 
 
@@ -34,7 +36,7 @@ export component ActivityForm inherits VerticalBox {
 
 
     UILineEdit {
-        
+        _text <=> root.activity.category;
     }
 
 
@@ -46,6 +48,7 @@ export component ActivityForm inherits VerticalBox {
 
 
     UILineEdit {
+        _text <=> root.activity.description;
     }
 
     Text {
@@ -53,7 +56,11 @@ export component ActivityForm inherits VerticalBox {
         color: #022817;
     }
 
-    UILineEdit {
+    UIComboBox {
+        _model: crop-names;
+        _current-value: crop-names[root.activity.crop-id];
+        _current-index <=> root.activity.crop-id;
+
     }
 
     Text {
@@ -61,7 +68,8 @@ export component ActivityForm inherits VerticalBox {
         color: #022817;
     }
 
-    UILineEdit {
+    UIDatePicker {
+        date_string <=> root.activity.scheduled-at;
     }
 
     Text {
@@ -69,7 +77,9 @@ export component ActivityForm inherits VerticalBox {
         color: #022817;
     }
 
-    UIDatePicker {
+    UIComboBox {
+        _model: [ "To Do", "Scheduled", "On-Going", "Stalled", "Almost Done", " Completed"];
+        _current-value: root.activity.status;
     }
 
     Text {
@@ -77,17 +87,17 @@ export component ActivityForm inherits VerticalBox {
         color: #022817;
     }
 
-    UIComboBox {
-        _model: ["Growing", "Harvested", "Fallow", "Prepared"];
+    UIDatePicker {
+        date_string <=> root.activity.started-at;
     }
 
-        Text {
+    Text {
         text: "Completed At";
         color: #022817;
     }
 
-    UIComboBox {
-        _model: ["Growing", "Harvested", "Fallow", "Prepared"];
+    UIDatePicker {
+        date_string <=> root.activity.started-at;
     }
 
     Text {
@@ -96,6 +106,7 @@ export component ActivityForm inherits VerticalBox {
     }
 
     UILineEdit {
+        _text <=> root.activity.notes;
     }
 
     UiButton {

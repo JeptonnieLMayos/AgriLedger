@@ -6,7 +6,6 @@ pub fn initialize(path: &Path) -> Result<Connection> {
 
     conn.execute_batch(
         "
-        PRAGMA foreign_keys = ON;
 
         CREATE TABLE IF NOT EXISTS crops (
             id INTEGER PRIMARY KEY,
@@ -30,10 +29,8 @@ pub fn initialize(path: &Path) -> Result<Connection> {
             started_at TEXT,
             completed_at TEXT,
             notes TEXT,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            FOREIGN KEY (crop_id) REFERENCES crops(id),
-            FOREIGN KEY (material_id) REFERENCES activity_material(id)
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS activity_material (
@@ -41,8 +38,7 @@ pub fn initialize(path: &Path) -> Result<Connection> {
             activity_id INTEGER NOT NULL,
             quantity REAL NOT NULL,
             unit TEXT NOT NULL,
-            cost REAL DEFAULT 0,
-            FOREIGN KEY (activity_id) REFERENCES activities(id)
+            cost REAL DEFAULT 0
         );
         ",
     )?;

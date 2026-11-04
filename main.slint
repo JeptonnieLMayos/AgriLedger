@@ -41,6 +41,7 @@ export component MainWindow inherits Window {
     in-out property <bool> has-crops: false;
     in-out property <bool> show-crop-form: false;
     in property <[CropData]> crops: [];
+    in property <[string]> crop-names;
     in-out property <CropData> crop;
     callback save-crop(CropData);
     callback delete-crop(int);
@@ -192,6 +193,7 @@ export component MainWindow inherits Window {
             show-form <=> root.show-activity-form;
             activities <=> root.activities;
             current-date: root.current-date;
+            crop-names: root.crop-names;
 
             add-activity => {
                 root.show-activity-form = true;

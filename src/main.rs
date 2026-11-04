@@ -2,7 +2,7 @@ mod db;
 
 slint::include_modules!();
 
-use slint::{ModelRc, VecModel};
+use slint::{ModelRc, VecModel, SharedString};
 use chrono::{Datelike};
 
 
@@ -203,6 +203,14 @@ fn refresh_crops(
     conn: &rusqlite::Connection,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let crops = db::crops::get_crops(conn)?;
+    let mut crop_names: Vec<SharedString> = vec![
+    SharedString::from("Not specified")
+    ];
+    crop_names.extend(
+    crops.iter()
+        .map(|crop| SharedString::from(crop.name.as_str()))
+        .filter(|name| !name.is_empty())
+    );
 
     window.set_has_crops(!crops.is_empty());
 
@@ -233,6 +241,7 @@ fn refresh_crops(
         .collect();
 
     window.set_crops(ModelRc::new(VecModel::from(model)));
+    window.set_crop_names(ModelRc::new(VecModel::from(crop_names)));
 
     Ok(())
 }
@@ -249,11 +258,12 @@ fn refresh_activities(
         .into_iter()
         .map(|activity| {
             let display_text = format!(
-            "\nCategory: {}\nDescription: {}\nNotes: {}\nStatus: {}",
+            "\nCategory: {}\n Crop: {}\nStatus: {}\nScheduled At: {}\nDescription: {}",
             activity.category,
-            activity.description,
-            activity.notes,
-            activity.status
+            activity.crop_id,
+            activity.status,
+            activity.scheduled_at,
+            activity.description
             );
 
             ActivityData {
@@ -268,7 +278,8 @@ fn refresh_activities(
                 completed_at: activity.completed_at.into(),
                 notes: activity.notes.into(),
                 created_at: activity.created_at.into(),
-                updated_at: activity.updated_at.into()
+                updated_at: activity.updated_at.into(),
+                display_text: display_text.into()
             }
         })
         .collect();
