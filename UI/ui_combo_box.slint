@@ -16,6 +16,6 @@ export component UIComboBox inherits Rectangle {
         width: parent.width;
         model: _model;
         current-value <=> root._current-value;
-        current-index  <=> root._current-index;
+        current-index  <=> root._current-index; // iter != db id
     }
 }

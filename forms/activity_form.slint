@@ -64,42 +64,20 @@ export component ActivityForm inherits VerticalBox {
     }
 
     Text {
-        text: "Scheduled";
+        text: root.activity.is-canceled ? "Cancelled" :
+            root.activity.is-stalled ? "Stalled" :
+            root.activity.is-paused ? "Paused" :
+            !root.activity.completed-at.is-empty ? "Completed" :
+            !root.activity.started-at.is-empty ? "Ongoing" :
+            !root.activity.scheduled-at.is-empty ? "Scheduled" :
+            "Unscheduled";
         color: #022817;
     }
 
     UIDatePicker {
         date_string <=> root.activity.scheduled-at;
-    }
 
-    Text {
-        text: "Status";
-        color: #022817;
     }
-
-    UIComboBox {
-        _model: [ "To Do", "Scheduled", "On-Going", "Stalled", "Almost Done", " Completed"];
-        _current-value: root.activity.status;
-    }
-
-    Text {
-        text: "Started At";
-        color: #022817;
-    }
-
-    UIDatePicker {
-        date_string <=> root.activity.started-at;
-    }
-
-    Text {
-        text: "Completed At";
-        color: #022817;
-    }
-
-    UIDatePicker {
-        date_string <=> root.activity.started-at;
-    }
-
     Text {
     text: "notes";
     color: #022817;

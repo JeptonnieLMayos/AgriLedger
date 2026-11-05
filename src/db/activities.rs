@@ -11,14 +11,34 @@ pub fn insert_activity(
     status: &str,
     started_at: &str,
     completed_at: &str,
+    is_paused: bool,
+    is_stalled: bool,
+    is_canceled: bool,
+    priority: &str,
     notes: &str,
     created_at: &str,
     updated_at: &str,
 ) -> Result<()> {
     conn.execute(
         "INSERT INTO activities
-            (category, description, crop_id, material_id, scheduled_at, status, started_at, completed_at, notes, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            (
+                category, 
+                description, 
+                crop_id, 
+                material_id, 
+                scheduled_at, 
+                status, 
+                started_at, 
+                completed_at, 
+                is_paused, 
+                is_stalled, 
+                is_canceled, 
+                priority, 
+                notes, 
+                created_at, 
+                updated_at
+            )
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
         (
             category,
             description,
@@ -28,6 +48,10 @@ pub fn insert_activity(
             status,
             started_at,
             completed_at,
+            is_paused,
+            is_stalled,
+            is_canceled,
+            priority,
             notes,
             created_at,
             updated_at
@@ -56,6 +80,10 @@ pub fn list_activities(conn: &Connection) -> Result<Vec<String>> {
             status,
             started_at,
             completed_at,
+            is_paused,
+            is_stalled,
+            is_canceled,
+            priority,
             notes,
             created_at,
             updated_at
@@ -66,15 +94,19 @@ pub fn list_activities(conn: &Connection) -> Result<Vec<String>> {
     let rows = stmt.query_map([], |row| {
         let category: String = row.get(0)?;
         let description: String = row.get(1)?;
-        let crop_id: f64 = row.get(2)?;
-        let material_id: f64 = row.get(3)?;
+        let crop_id: i64 = row.get(2)?;
+        let material_id: i64 = row.get(3)?;
         let scheduled_at: String = row.get(4)?;
         let status: String = row.get(5)?;
         let started_at: String = row.get(6)?;
         let completed_at: String = row.get(7)?;
-        let notes: String = row.get(8)?;
-        let created_at: String = row.get(9)?;
-        let updated_at: String = row.get(10)?;
+        let is_paused:bool = row.get(8)?;
+        let is_stalled:bool = row.get(9)?;
+        let is_canceled:bool = row.get(10)?;
+        let priority: String = row.get(11)?;
+        let notes: String = row.get(12)?;
+        let created_at: String = row.get(13)?;
+        let updated_at: String = row.get(14)?;
 
         Ok(format!(
             "\nCategory: {}\nDescription: {}\nNotes: {}\nStatus: {}",
@@ -100,6 +132,10 @@ pub fn update_activities(
     status: &str,
     started_at: &str,
     completed_at: &str,
+    is_paused: bool,
+    is_stalled: bool,
+    is_canceled: bool,
+    priority: &str,
     notes: &str,
     created_at: &str,
     updated_at: &str
@@ -114,10 +150,14 @@ pub fn update_activities(
              status = ?6,
              started_at = ?7,
              completed_at = ?8,
-             notes = ?9,
-             created_at = ?10,
-             updated_at = ?11
-         WHERE id = ?12",
+             is_paused = ?9,
+             is_stalled = ?10,
+             is_canceled = ?11,
+             priority = ?12,
+             notes = ?13,
+             created_at = ?14,
+             updated_at = ?15
+         WHERE id = ?16",
         (
             category,
             description,
@@ -127,6 +167,10 @@ pub fn update_activities(
             status,
             started_at,
             completed_at,
+            is_paused,
+            is_stalled,
+            is_canceled,
+            priority,
             notes,
             created_at,
             updated_at,
@@ -151,12 +195,16 @@ pub struct ActivityRecord {
     pub id: i64,
     pub category: String,
     pub description: String,
-    pub crop_id: f64,
-    pub material_id: f64,
+    pub crop_id: i64,
+    pub material_id: i64,
     pub scheduled_at: String,
     pub status: String,
     pub started_at: String,
     pub completed_at: String,
+    pub is_paused: bool,
+    pub is_stalled: bool,
+    pub is_canceled: bool,
+    pub priority: String,
     pub notes: String,
     pub created_at: String,
     pub updated_at: String
@@ -164,7 +212,22 @@ pub struct ActivityRecord {
 
 pub fn get_activities(conn: &Connection) -> Result<Vec<ActivityRecord>> {
     let mut stmt = conn.prepare(
-        "SELECT id, category, description, crop_id, material_id, scheduled_at, status, started_at, completed_at, notes, created_at, updated_at
+        "SELECT id, 
+                    category, 
+                    description, 
+                    crop_id, 
+                    material_id, 
+                    scheduled_at, 
+                    status, 
+                    started_at, 
+                    completed_at, 
+                    is_paused, 
+                    is_stalled, 
+                    is_canceled, 
+                    priority, 
+                    notes, 
+                    created_at, 
+                    updated_at
          FROM activities
          ORDER BY id",
     )?;
@@ -180,9 +243,13 @@ pub fn get_activities(conn: &Connection) -> Result<Vec<ActivityRecord>> {
             status: row.get(6)?,
             started_at: row.get(7)?,
             completed_at: row.get(8)?,
-            notes: row.get(9)?,
-            created_at: row.get(10)?,
-            updated_at: row.get(11)?
+            is_paused: row.get(9)?,
+            is_stalled: row.get(10)?,
+            is_canceled: row.get(11)?,
+            priority: row.get(12)?,
+            notes: row.get(13)?,
+            created_at: row.get(14)?,
+            updated_at: row.get(15)?
         })
     })?;
 
