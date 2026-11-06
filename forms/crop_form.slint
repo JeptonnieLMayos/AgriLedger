@@ -48,22 +48,12 @@ export component CropForm inherits VerticalBox {
     }
 
     Text {
-        text: "Measurement unit";
-        color: #022817;
-    }
-
-    UIComboBox {
-        _model: ["m²", "hectares", "acres"];
-        _current-value <=> root.crop.area-unit;
-    }
-
-    Text {
         text: "Crop";
         color: #022817;
     }
 
     UILineEdit {
-        _text <=> root.crop.crop;
+        _text <=> root.crop.field;
     }
 
     Text {
@@ -89,8 +79,8 @@ export component CropForm inherits VerticalBox {
     UiButton {
         label: root.editing ? "Save Changes" : "Save";
         clicked => {
-            if root.crop.name != "" &&
-                root.crop.area != "" {
+            if root.crop.name != "" {
+                crop.field = crop.field == "Not specified" ? "-1" : crop.field;
                 root.save-crop(
                     crop
                 );

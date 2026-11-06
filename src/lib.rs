@@ -48,7 +48,7 @@ fn android_main(app: slint::android::AndroidApp) {
 
     window.on_save_crop(move |crop| {
         let area = match crop.area.trim().parse::<f64>() {
-            Ok(value) if value.is_finite() && value > 0.0 => value,
+            Ok(value) if value.is_finite() => value,
             _ => {
                 eprintln!("crop area must be a valid number greater than zero."); // log
                 return;
@@ -66,8 +66,7 @@ fn android_main(app: slint::android::AndroidApp) {
                 crop.id as i64,
                 crop.name.trim(),
                 area,
-                crop.area_unit.as_str(),
-                crop.crop.as_str(),
+                -1,
                 crop.planting_date.as_str(),
                 crop.status.as_str(),
             )
@@ -76,8 +75,7 @@ fn android_main(app: slint::android::AndroidApp) {
                 &crop_conn,
                 crop.name.trim(),
                 area,
-                crop.area_unit.as_str(),
-                crop.crop.as_str(),
+                -1,
                 crop.planting_date.as_str(),
                 crop.status.as_str(),
             )
@@ -233,11 +231,10 @@ fn refresh_crops(
         .into_iter()
         .map(|crop| {
             let display_text = format!(
-                "{}\nArea: {} {}\nCrop: {}\nPlanted: {}\nStatus: {}",
+                "{}\nArea: {} m²\nField: {}\nPlanted: {}\nStatus: {}",
                 crop.name,
                 crop.area,
-                crop.area_unit,
-                if crop.crop.is_empty() { "Not specified" } else { &crop.crop },
+                if crop.field_id == -1 { "Not specified".to_string() } else { crop.field_id.to_string() },
                 if crop.planting_date.is_empty() { "Not specified" } else { &crop.planting_date },
                 crop.status
             );
@@ -246,8 +243,7 @@ fn refresh_crops(
                 id: crop.id as i32,
                 name: crop.name.into(),
                 area: crop.area.to_string().into(),
-                area_unit: crop.area_unit.into(),
-                crop: crop.crop.into(),
+                field: crop.field_id.to_string().into(),
                 planting_date: crop.planting_date.into(),
                 status: crop.status.into(),
                 display_text: display_text.into(),

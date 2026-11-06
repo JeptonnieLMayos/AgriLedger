@@ -8,12 +8,28 @@ pub fn initialize(path: &Path) -> Result<Connection> {
         "
         PRAGMA foreign_keys = ON;
 
+        CREATE TABLE IF NOT EXISTS farms (
+            name TEXT NOT NULL,
+            description TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS groups (
+            farm_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            description TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS fields (
+            group_id INTEGER,
+            name TEXT NOT NULL,
+            area REAL
+        );
+
         CREATE TABLE IF NOT EXISTS crops (
             id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            area REAL NOT NULL CHECK (area > 0),
-            area_unit TEXT NOT NULL DEFAULT 'm²',
-            crop TEXT NOT NULL DEFAULT '',
+            name TEXT NOT NULL ,
+            area REAL,
+            field_id INTEGER,
             planting_date TEXT NOT NULL DEFAULT '',
             status TEXT NOT NULL DEFAULT 'Fallow',
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -5,20 +5,18 @@ pub fn insert_crop(
     conn: &Connection,
     name: &str,
     area: f64,
-    area_unit: &str,
-    crop: &str,
+    field_id: i64,
     planting_date: &str,
     status: &str,
 ) -> Result<()> {
     conn.execute(
         "INSERT INTO crops
-            (name, area, area_unit, crop, planting_date, status)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            (name, area, field_id, planting_date, status)
+         VALUES (?1, ?2, ?3, ?4, ?5)",
         (
             name,
             area,
-            area_unit,
-            crop,
+            field_id,
             planting_date,
             status,
         ),
@@ -37,7 +35,7 @@ pub fn count_crops(conn: &Connection) -> Result<i64> {
 
 pub fn list_crops(conn: &Connection) -> Result<Vec<String>> {
     let mut stmt = conn.prepare(
-        "SELECT name, area, area_unit, crop, planting_date, status
+        "SELECT name, area, field_id, planting_date, status
          FROM crops
          ORDER BY id",
     )?;
@@ -45,17 +43,15 @@ pub fn list_crops(conn: &Connection) -> Result<Vec<String>> {
     let rows = stmt.query_map([], |row| {
         let name: String = row.get(0)?;
         let area: f64 = row.get(1)?;
-        let unit: String = row.get(2)?;
-        let crop: String = row.get(3)?;
-        let date: String = row.get(4)?;
-        let status: String = row.get(5)?;
+        let field_id: i64 = row.get(2)?;
+        let date: String = row.get(3)?;
+        let status: String = row.get(4)?;
 
         Ok(format!(
-            "{}\nArea: {} {}\nCrop: {}\nPlanted: {}\nStatus: {}",
+            "{}\nArea: {} m²\nField: {}\nPlanted: {}\nStatus: {}",
             name,
             area,
-            unit,
-            if crop.is_empty() { "Not specified" } else { &crop },
+            if field_id > -1 { "Not specified".to_string() } else { field_id.to_string() },
             if date.is_empty() { "Not specified" } else { &date },
             status
         ))
@@ -70,8 +66,7 @@ pub fn update_crop(
     id: i64,
     name: &str,
     area: f64,
-    area_unit: &str,
-    crop: &str,
+    field_id: i64,
     planting_date: &str,
     status: &str,
 ) -> Result<bool> {
@@ -79,16 +74,14 @@ pub fn update_crop(
         "UPDATE crops
          SET name = ?1,
              area = ?2,
-             area_unit = ?3,
-             crop = ?4,
-             planting_date = ?5,
-             status = ?6
-         WHERE id = ?7",
+             field_id = ?3,
+             planting_date = ?4,
+             status = ?5
+         WHERE id = ?6",
         (
             name,
             area,
-            area_unit,
-            crop,
+            field_id,
             planting_date,
             status,
             id,
@@ -112,15 +105,14 @@ pub struct CropRecord {
     pub id: i64,
     pub name: String,
     pub area: f64,
-    pub area_unit: String,
-    pub crop: String,
+    pub field_id: i64,
     pub planting_date: String,
     pub status: String,
 }
 
 pub fn get_crops(conn: &Connection) -> Result<Vec<CropRecord>> {
     let mut stmt = conn.prepare(
-        "SELECT id, name, area, area_unit, crop, planting_date, status
+        "SELECT id, name, area, field_id, planting_date, status
          FROM crops
          ORDER BY id",
     )?;
@@ -130,10 +122,9 @@ pub fn get_crops(conn: &Connection) -> Result<Vec<CropRecord>> {
             id: row.get(0)?,
             name: row.get(1)?,
             area: row.get(2)?,
-            area_unit: row.get(3)?,
-            crop: row.get(4)?,
-            planting_date: row.get(5)?,
-            status: row.get(6)?,
+            field_id: row.get(3)?,
+            planting_date: row.get(4)?,
+            status: row.get(5)?,
         })
     })?;
 
