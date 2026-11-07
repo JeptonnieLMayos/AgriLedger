@@ -3,6 +3,9 @@ import { CropsScreen } from "Screens/crops.slint";
 import { ReportsScreen } from "Screens/reports.slint";
 import { VerticalBox, HorizontalBox, Date, Button } from "std-widgets.slint";
 import { UiButtonImg } from "UI/ui_button_img.slint";
+import { FarmData } from "models/farm_data.slint";
+import { GroupData } from "models/group_data.slint";
+import { FieldData } from "models/field_data.slint";
 import { CropData } from "models/crop_data.slint";
 import { ActivitiesScreen } from "Screens/activities.slint";
 import { HarvestScreen } from "Screens/harvest.slint";
@@ -22,6 +25,7 @@ export component MainWindow inherits Window {
     preferred-width: 420px;
     preferred-height: 600px;
     background: #c2cbbd;
+    
 
 
     Image {
@@ -36,7 +40,33 @@ export component MainWindow inherits Window {
         vertical-tiling: repeat;
     }
 
+    out property <color> dark-color: #285943;
+
     in-out property <string> current-screen: "home";
+
+    in-out property <bool> has-farms: false;
+    in-out property <bool> show-farm-form: false;
+    in property <[FarmData]> farms: [];
+    in property <[string]> farm-names;
+    in-out property <FarmData> farm;
+    callback save-farm(FarmData);
+    callback delete-farm(int);
+
+    in-out property <bool> has-groups: false;
+    in-out property <bool> show-group-form: false;
+    in property <[GroupData]> groups: [];
+    in property <[string]> group-names;
+    in-out property <GroupData> group;
+    callback save-group(GroupData);
+    callback delete-group(int);
+
+    in-out property <bool> has-fields: false;
+    in-out property <bool> show-field-form: false;
+    in property <[FieldData]> fields: [];
+    in property <[string]> field-names;
+    in-out property <FieldData> field;
+    callback save-field(FieldData);
+    callback delete-field(int);
 
     in-out property <bool> has-crops: false;
     in-out property <bool> show-crop-form: false;
@@ -162,7 +192,28 @@ export component MainWindow inherits Window {
         alignment: start;
 
         if root.current-screen == "home": HomeScreen {
+            dark-color: root.dark-color;
 
+            has-items: root.has-farms;
+            show-form <=> root.show-farm-form;
+            farms <=> root.farms;
+            current-date: root.current-date;
+
+            add-farm => {
+                root.show-farm-form = true;
+            }
+
+            save-farm(farm) => {
+                root.save-farm(farm);
+            }
+
+            edit-farm(farm) => {
+                root.farm = farm;
+                root.show-farm-form = true;
+            }
+            delete-farm(id) => {
+                root.delete-farm(id);
+            }
         }
 
         if root.current-screen == "crops": CropsScreen {

@@ -19,20 +19,26 @@ fn android_main(app: slint::android::AndroidApp) {
     std::fs::create_dir_all(&data_dir).unwrap();
 
     let db_path = data_dir.join("agriledger.db");
+    let farm_conn = db::initialize::initialize(&db_path).unwrap();
     let crop_conn = db::initialize::initialize(&db_path).unwrap();
     let activity_conn = db::initialize::initialize(&db_path).unwrap();
 
     let window = MainWindow::new().unwrap();
 
+    refresh_farms(&window, &farm_conn).unwrap();
     refresh_crops(&window, &crop_conn).unwrap();
     refresh_activities(&window, &activity_conn).unwrap();
 
+    let farm_weak_window = window.as_weak();
     let crop_weak_window = window.as_weak();
     let activity_weak_window = window.as_weak();
 
+    let delete_farm_conn = db::initialize::initialize(&db_path).unwrap();
     let crop_delete_conn = db::initialize::initialize(&db_path).unwrap();
-    let crop_delete_weak_window = window.as_weak();
     let activity_delete_conn = db::initialize::initialize(&db_path).unwrap();
+
+    let delete_farm_weak_window = window.as_weak();
+    let crop_delete_weak_window = window.as_weak();
     let activity_delete_weak_window = window.as_weak();
 
     // current date
@@ -45,6 +51,47 @@ fn android_main(app: slint::android::AndroidApp) {
     });
   
     // current date
+
+    window.on_save_farm(move |farm| {
+
+        let result = if farm.id > 0 {
+            db::farms::update_farm(
+                &farm_conn,
+                farm.id as i64,
+                farm.name.trim(),
+                farm.description.trim(),
+                farm.notes.trim(),
+            )
+        } else {
+            db::farms::insert_farm(
+                &farm_conn,
+                farm.name.trim(),
+                farm.description.trim(),
+                farm.notes.trim(),
+            )
+            .map(|_| true)
+        };
+
+        match result {
+            Ok(true) => {}
+            Ok(false) => {
+                eprintln!("No farm was updated. The selected farm may no longer exist.");  // log
+                return;
+            }
+            Err(error) => {
+                eprintln!("Could not save farm: {error}");  // log
+                return;
+            }
+        }
+
+        if let Some(window) = farm_weak_window.upgrade() {
+            if let Err(error) = refresh_farms(&window, &farm_conn) {
+                eprintln!("Could not refresh farms: {error}");  // log
+            } else {
+                window.set_show_farm_form(false);
+            }
+        }
+    });
 
     window.on_save_crop(move |crop| {
         let area = match crop.area.trim().parse::<f64>() {
@@ -171,6 +218,23 @@ fn android_main(app: slint::android::AndroidApp) {
     });
 
 
+    window.on_delete_farm(move |id| {
+        match db::farms::delete_farm(&delete_farm_conn, id as i64) {
+            Ok(true) => {
+                if let Some(window) = delete_farm_weak_window.upgrade() {
+                    if let Err(error) = refresh_farms(&window, &delete_farm_conn) {
+                        eprintln!("Could not refresh farms: {error}");  // log
+                    }
+                }
+            }
+            Ok(false) => {
+                eprintln!("No farm was deleted. ID: {id}");
+            }
+            Err(error) => {
+                eprintln!("Could not delete farm: {error}");
+            }
+        }
+    });
     window.on_delete_crop(move |id| {
         match db::crops::delete_crop(&crop_delete_conn, id as i64) {
             Ok(true) => {
@@ -209,6 +273,48 @@ fn android_main(app: slint::android::AndroidApp) {
     });
 
     window.run().unwrap();
+}
+
+fn refresh_farms(
+    window: &MainWindow,
+    conn: &rusqlite::Connection,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let farms = db::farms::get_farms(conn)?;
+    let mut farm_names: Vec<SharedString> = vec![
+    SharedString::from("Not specified")
+    ];
+    farm_names.extend(
+    farms.iter()
+        .map(|farm| SharedString::from(farm.name.as_str()))
+        .filter(|name| !name.is_empty())
+    );
+
+    window.set_has_farms(!farms.is_empty());
+
+    let model: Vec<FarmData> = farms
+        .into_iter()
+        .map(|farm| {
+            let display_text = format!(
+                "{}\nDescription: {}\nnotes: {}",
+                farm.name,
+                farm.description,
+                farm.notes
+            );
+
+            FarmData {
+                id: farm.id as i32,
+                name: farm.name.into(),
+                description: farm.description.into(),
+                notes: farm.notes.into(),
+                display_text: display_text.into(),
+            }
+        })
+        .collect();
+
+    window.set_farms(ModelRc::new(VecModel::from(model)));
+    window.set_farm_names(ModelRc::new(VecModel::from(farm_names)));
+
+    Ok(())
 }
 
 fn refresh_crops(

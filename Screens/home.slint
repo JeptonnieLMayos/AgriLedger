@@ -1,38 +1,153 @@
-import { VerticalBox } from "std-widgets.slint";
+import { VerticalBox, Button, StandardButton, Date, HorizontalBox } from "std-widgets.slint";
 import { UiButton } from "../UI/ui_button.slint";
+import { FarmData } from "../models/farm_data.slint";
+import { ScreenState } from "../models/screen_state.slint";
+import { FarmForm } from "../forms/farm_form.slint";
+import { UiButtonImg } from "../UI/ui_button_img.slint";
+import { ConfirmDialog } from "../UI/confirm_dialog.slint";
 
-export component HomeScreen inherits VerticalBox {
+export component HomeScreen inherits Rectangle {
+    callback go-back();
+    callback add-farm();
+    callback save-farm( FarmData );
+    callback edit-farm( FarmData );
+    callback delete-farm(int);
+
+    in property <Date> current-date;
+    in-out property <ScreenState> screen: {
+        selected-id: -1,
+        is-editing: false,
+        show-delete-dialog: false,
+        pending-delete-id: -1
+    };
+
+    in-out property <bool> has-items: false;
+    in-out property <bool> show-form: false;
+    in property <[FarmData]> farms: [];
+    in-out property <FarmData> farm;
+    
+    in property <color> dark-color;
+    in-out property <int> name;
 
 
-    spacing: 16px;
 
-    Text {
-        text: "Your farm, your records.";
-        color: #212923;
-        font-size: 15px;
+
+    VerticalLayout {
+        padding: 24px;
+        spacing: 16px;
+
+        if !root.show-form: Text {
+            text: "Your farm, your records.";
+            color: #212923;
+            font-size: 15px;
+        }
+    
+
+        if !root.show-form: Flickable {
+            VerticalBox {
+                spacing: 10px;
+
+
+
+                for farm in root.farms: Rectangle {
+                    height: 120px;
+                    background: #f4fff5;
+                    border-radius: 8px;
+
+                    Text {
+                        x: 12px;
+                        y: 10px;
+                        width: parent.width - 24px;
+                        height: parent.height - 20px;
+                        text: farm.display-text;
+                        color: #022817;
+                        wrap: word-wrap;
+                        vertical-alignment: center;
+                    }
+
+                    HorizontalBox {
+                        Rectangle {
+                            horizontal-stretch: 1;
+                        }
+                        VerticalBox {
+                            alignment: start;
+                            UiButtonImg {
+                                width: 24px;
+                                height: 24px;
+                                img-height: 23px;
+                                img-width: 23px;
+                                colorize: #002000;
+                                img: @image-url("../Icons/Pencil/Pencil-Write-2.png");
+                                clicked => {
+                                    root.screen.is-editing = true;
+                                    root.screen.selected-id = farm.id;
+                                    root.farm = farm;
+                                    root.edit-farm(
+                                        farm
+                                        );
+                                }
+                            }
+
+                            UiButtonImg {
+                                width: 24px;
+                                height: 24px;
+                                img-height: 23px;
+                                img-width: 23px;
+                                colorize: #b00000;
+                                img: @image-url("../Icons/Trash/Trash-Bin-Circle.png");
+                                clicked => {
+                                    root.screen.pending-delete-id = farm.id;
+                                    root.screen.show-delete-dialog = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if !root.show-form: UiButton {
+            label: "+ Add Farm";
+            clicked => {
+                root.screen.is-editing= false;
+                root.screen.selected-id = -1;
+                root.farm.id = 0;
+                root.farm.name = "";
+                root.farm.description = "";
+                root.farm.notes = "";
+                root.add-farm();
+            }
+        }
+
+        if show-form: FarmForm {
+            editing: root.screen.is-editing;
+            farm <=> root.farm;
+            save-farm(farm) => {
+                root.save-farm(farm);
+            }
+
+            cancel => {
+                root.show-form = false;
+            }
+        }
     }
 
-    Rectangle {
-        background: white;
-        border-radius: 12px;
-        min-height: 100px;
+    if root.screen.show-delete-dialog: ConfirmDialog {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        size: {x: 320px , y: 180px };
 
-        VerticalBox {
-            padding: 16px;
-            spacing: 8px;
+        title: "Delete record?";
+        message: "This record will be permanently deleted. This action cannot be undone.";
 
-            Text {
-                text: "My Farm";
-                color: black;
-                font-size: 18px;
-                font-weight: 600;
-            }
+        cancelled => {
+            root.screen.show-delete-dialog = false;
+            root.screen.pending-delete-id = -1;
+        }
 
-            Text {
-                text: "Keep your fields and activities organized.";
-                color: #59665c;
-                wrap: word-wrap;
-            }
+        confirmed => {
+            root.delete-farm(root.screen.pending-delete-id);
+            root.screen.show-delete-dialog = false;
+            root.screen.pending-delete-id = -1;
         }
     }
 
