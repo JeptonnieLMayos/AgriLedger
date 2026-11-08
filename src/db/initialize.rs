@@ -25,7 +25,7 @@ pub fn initialize(path: &Path) -> Result<Connection> {
 
         CREATE TABLE IF NOT EXISTS fields (
             id INTEGER PRIMARY KEY,
-            farm_id INTEGER,
+            farm_id INTEGER NOT NULL,
             group_id INTEGER,
             name TEXT NOT NULL,
             area REAL,

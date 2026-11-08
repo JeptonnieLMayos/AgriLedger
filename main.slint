@@ -43,6 +43,7 @@ export component MainWindow inherits Window {
     out property <color> dark-color: #285943;
 
     in-out property <string> current-screen: "home";
+    in-out property <int> selected-id: -1;
 
     in-out property <bool> has-farms: false;
     in-out property <bool> show-farm-form: false;
@@ -193,20 +194,26 @@ export component MainWindow inherits Window {
 
         if root.current-screen == "home": HomeScreen {
             dark-color: root.dark-color;
-
-            has-items: root.has-farms;
-            show-form <=> root.show-farm-form;
-            farms <=> root.farms;
             current-date: root.current-date;
+
+            farm-has-items: root.has-farms;
+            farm-show-form <=> root.show-farm-form;
+            farms <=> root.farms;
+
+            group-has-items: root.has-groups;
+            group-show-form <=> root.show-group-form;
+            groups <=> root.groups;
+
+            field-has-items: root.has-fields;
+            field-show-form <=> root.show-field-form;
+            fields <=> root.fields;
 
             add-farm => {
                 root.show-farm-form = true;
             }
-
             save-farm(farm) => {
                 root.save-farm(farm);
             }
-
             edit-farm(farm) => {
                 root.farm = farm;
                 root.show-farm-form = true;
@@ -214,6 +221,35 @@ export component MainWindow inherits Window {
             delete-farm(id) => {
                 root.delete-farm(id);
             }
+
+            add-group => {
+                root.show-group-form = true;
+            }
+            save-group(group) => {
+                root.save-group(group);
+            }
+            edit-group(group) => {
+                root.group = group;
+                root.show-group-form = true;
+            }
+            delete-group(id) => {
+                root.delete-group(id);
+            }
+
+            add-field => {
+                root.show-field-form = true;
+            }
+            save-field(field) => {
+                root.save-field(field);
+            }
+            edit-field(field) => {
+                root.field = field;
+                root.show-field-form = true;
+            }
+            delete-field(id) => {
+                root.delete-field(id);
+            }
+
         }
 
         if root.current-screen == "crops": CropsScreen {
