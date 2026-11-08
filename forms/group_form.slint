@@ -1,0 +1,79 @@
+import { VerticalBox, Date, TextEdit } from "std-widgets.slint";
+import { UiButton } from "../UI/ui_button.slint";
+import { UILineEdit } from "../UI/ui_line_edit.slint";
+import { UIComboBox } from "../UI/ui_combo_box.slint";
+import { UIDatePicker } from "../UI/ui_date_picker.slint";
+import { GroupData } from "../models/group_data.slint";
+import { UITextEdit } from "../UI/ui_text_edit.slint";
+
+export component GroupForm inherits VerticalBox {
+    callback save-group(
+        GroupData
+    );
+    callback cancel();
+    
+    spacing: 10px;
+
+    in property <Date> current-date;
+    in property <bool> editing: false;
+    in-out property <GroupData> group; 
+
+
+    Text {
+        text: root.editing ? "Edit" : "New";
+        font-size: 18px;
+        font-weight: 700;
+        color: #022817;
+    }
+
+    Text {
+        text: "Name";
+        color: #022817;
+    }
+
+
+    UILineEdit {
+        _text <=> root.group.name;
+    }
+
+
+
+    Text {
+        text: "Description";
+        color: #022817;
+    }
+
+
+    UILineEdit {
+        _text <=> root.group.description;
+    }
+
+    Text {
+        text: "notes:";
+        color: #022817;
+    }
+
+    UILineEdit {
+        _text <=> root.group.notes;
+    }
+
+    UiButton {
+        label: root.editing ? "Save Changes" : "Save";
+        clicked => {
+            if root.group.name == "" {
+                return;
+            }
+            root.save-group(
+                group
+            );
+        }
+    }
+
+    UiButton {
+        label: "Cancel";
+        button-color: #59665c;
+        clicked => {
+            root.cancel();
+        }
+    }
+}
