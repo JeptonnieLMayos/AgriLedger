@@ -1,0 +1,27 @@
+import { ConfirmDialog } from "./confirm_dialog.slint";
+
+export component RecordDeleteDialog inherits Rectangle {
+    callback cancelled();
+    callback confirmed();
+
+    width: 320px;
+    height: 180px;
+
+    if true: ConfirmDialog {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+
+        size: { x: 320px, y: 180px };
+
+        title: "Delete record?";
+        message: "This record will be permanently deleted. This action cannot be undone.";
+
+        cancelled => {
+            root.cancelled();
+        }
+
+        confirmed => {
+            root.confirmed();
+        }
+    }
+}

@@ -7,6 +7,8 @@ import { ScreenState } from "../models/screen_state.slint";
 import { CropData } from "../models/crop_data.slint";
 import { UiButtonImg } from "../UI/ui_button_img.slint";
 import { ConfirmDialog } from "../UI/confirm_dialog.slint";
+import { RecordCard } from "../UI/record_card.slint";
+import { RecordDeleteDialog } from "../UI/record_delete_dialog.slint";
 
 export component ActivitiesScreen inherits Rectangle {
     callback go-back();
@@ -15,6 +17,7 @@ export component ActivitiesScreen inherits Rectangle {
     callback edit-activity( ActivityData );
     callback delete-activity( int );
 
+    in-out property <string> current-page;
     in property <Date> current-date;
     in-out property <ScreenState> screen: {
         selected-id: -1,
@@ -24,12 +27,11 @@ export component ActivitiesScreen inherits Rectangle {
     };
 
     in-out property <bool> has-items: false;
-    in-out property <bool> show-form: false;
     in property <[ActivityData]> activities: [];
     in-out property <ActivityData> activity;
     in property <[string]> crop-names;
 
-    if !root.show-form: UiButton {
+    if current-page == "activities": UiButton {
         x: root.width - self.width ;
         y: root.height;
         corner-radius: 50px;
@@ -67,7 +69,7 @@ export component ActivitiesScreen inherits Rectangle {
             color: #022817;
         }
 
-        if root.show-form: ActivityForm {
+        if current-page == "form": ActivityForm {
             editing: root.screen.is-editing;
             activity <=> root.activity;
             crop-names: root.crop-names;
@@ -76,11 +78,11 @@ export component ActivitiesScreen inherits Rectangle {
             }
 
             cancel => {
-                root.show-form = false;
+                current-page == "overview";
             }
         }
 
-        if !root.show-form: VerticalBox {
+        if current-page == "activities": VerticalBox {
 
             HorizontalLayout {
                 spacing: 2px;
@@ -94,7 +96,7 @@ export component ActivitiesScreen inherits Rectangle {
                     label: "Completed";
                 }
             }
-            if !show-form: Flickable {
+            if current-page == "activities": Flickable {
                 VerticalBox {
                     if !root.has-items: VerticalBox {
                         Rectangle {
@@ -110,72 +112,20 @@ export component ActivitiesScreen inherits Rectangle {
                             }
                         }
                     }
+                    for activity in root.activities: RecordCard {
+                        display-text: activity.display-text;
 
-                    for activity in root.activities: Rectangle {
-                        height: 120px;
-                        background: #f4fff5;
-                        border-radius: 8px;
-                        Text {
-                            x: 12px;
-                            y: 10px;
-                            width: parent.width - 24px;
-                            height: parent.height - 20px;
-                            text: activity.display-text;
-                            color: #022817;
-                            wrap: word-wrap;
-                            vertical-alignment: center;
-                        }
-                        
-                        HorizontalBox {
-                            Rectangle {
-                                horizontal-stretch: 1;
-                            }
-                            VerticalBox {
-                                alignment: start;
-                                UiButtonImg {
-                                    width: 24px;
-                                    height: 24px;
-                                    img-height: 23px;
-                                    img-width: 23px;
-                                    colorize: #002000;
-                                    img: @image-url("../Icons/Pencil/Pencil-Write-2.png");
-                                    clicked => {
-                                        root.screen.is-editing = true;
-                                        root.screen.selected-id = activity.id;
-                                        root.activity = activity;
-                                        root.edit-activity(
-                                            activity
-                                            );
-                                    }
-                                }
-    
-                                UiButtonImg {
-                                    width: 24px;
-                                    height: 24px;
-                                    img-height: 23px;
-                                    img-width: 23px;
-                                    colorize: #b00000;
-                                    img: @image-url("../Icons/Trash/Trash-Bin-Circle.png");
-                                    clicked => {
-                                        root.screen.pending-delete-id = activity.id;
-                                        root.screen.show-delete-dialog = true;
-                                    }
-                                }
-                            }
+                        opened => {
+                            root.screen.selected-id = activity.id;
+                            root.activity = activity;
+                            root.current-page = "activity-overview";
                         }
                     }
                 }
             }
         }
     }
-    if root.screen.show-delete-dialog: ConfirmDialog {
-        x: (parent.width - self.width) / 2;
-        y: (parent.height - self.height) / 2;
-        size: {x: 320px , y: 180px };
-
-        title: "Delete record?";
-        message: "This record will be permanently deleted. This action cannot be undone.";
-
+    if root.screen.show-delete-dialog: RecordDeleteDialog {
         cancelled => {
             root.screen.show-delete-dialog = false;
             root.screen.pending-delete-id = -1;

@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     refresh_farms(&window, &farm_conn)?;
     refresh_groups(&window, &group_conn)?;
-    refresh_fields(&window, &farm_conn)?;
+    refresh_fields(&window, &field_conn)?;
     refresh_crops(&window, &crop_conn)?;
     refresh_activities(&window, &activity_conn)?;
     
@@ -94,7 +94,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(window) = farm_weak_window.upgrade() {
             match refresh_farms(&window, &farm_conn) {
-                Ok(()) => window.set_show_farm_form(false),
+                Ok(()) => window.set_farm_current_page("farms".to_shared_string()),
                 Err(error) => eprintln!("Could not refresh farms: {error}"),
             }
         }
@@ -135,7 +135,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(window) = group_weak_window.upgrade() {
             match refresh_groups(&window, &group_conn) {
-                Ok(()) => window.set_show_group_form(false),
+                Ok(()) => window.set_group_current_page("groups".to_shared_string()),
                 Err(error) => eprintln!("Could not refresh groups: {error}"),
             }
         }
@@ -178,7 +178,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(window) = field_weak_window.upgrade() {
             match refresh_fields(&window, &field_conn) {
-                Ok(()) => window.set_show_field_form(false),
+                Ok(()) => window.set_field_current_page("fields".to_shared_string()),
                 Err(error) => eprintln!("Could not refresh farms: {error}"),
             }
         }
@@ -229,7 +229,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(window) = crop_weak_window.upgrade() {
             match refresh_crops(&window, &crop_conn) {
-                Ok(()) => window.set_show_crop_form(false),
+                Ok(()) => window.set_crop_current_page("crops".to_shared_string()),
                 Err(error) => eprintln!("Could not refresh crops: {error}"),
             }
         }
@@ -293,7 +293,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(window) = activity_weak_window.upgrade() {
             match refresh_activities(&window, &activity_conn) {
-                Ok(()) => window.set_show_activity_form(false),
+                Ok(()) => window.set_activities_current_page("activities".to_shared_string()),
                 Err(error) => eprintln!("Could not refresh activities: {error}"),
             }
         }
@@ -475,7 +475,7 @@ fn refresh_groups(
             }
         })
         .collect();
-
+println!("Groups being assigned: {}", model.len());
     window.set_groups(ModelRc::new(VecModel::from(model)));
     window.set_group_names(ModelRc::new(VecModel::from(group_names)));
 
@@ -487,15 +487,16 @@ fn refresh_fields(
     conn: &rusqlite::Connection,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let fields = db::fields::get_fields(conn)?;
-    let mut field_names: Vec<SharedString> = vec![
-    SharedString::from("Not specified")
-    ];
-    field_names.extend(
-    fields.iter()
-        .map(|field| SharedString::from(field.name.as_str()))
-        .filter(|name| !name.is_empty())
-    );
 
+    let mut field_names: Vec<SharedString> = vec![
+        SharedString::from("Not specified")
+        ];
+        field_names.extend(
+            fields.iter()
+            .map(|field| SharedString::from(field.name.as_str()))
+            .filter(|name| !name.is_empty())
+        );
+        
     window.set_has_fields(!fields.is_empty());
 
     let model: Vec<FieldData> = fields

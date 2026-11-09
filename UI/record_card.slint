@@ -1,0 +1,30 @@
+export component RecordCard inherits Rectangle {
+
+    in property <string> display-text: "";
+
+    callback opened();
+
+    height: 120px;
+    width: 100%;
+
+    background: #f4fff5;
+    border-radius: 8px;
+
+    Text {
+        x: 10px;
+        y: 0;
+        width: parent.width - 20px;
+        height: parent.height;
+
+        text: root.display-text;
+        color: #022817;
+        wrap: word-wrap;
+        vertical-alignment: center;
+    }
+
+    TouchArea {
+        clicked => {
+            root.opened();
+        }
+    }
+}

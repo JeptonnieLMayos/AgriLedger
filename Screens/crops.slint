@@ -9,6 +9,7 @@ import { CropData } from "../models/crop_data.slint";
 import { ConfirmDialog } from "../UI/confirm_dialog.slint";
 import { UiButtonImg } from "../UI/ui_button_img.slint";
 import { ScreenState } from "../models/screen_state.slint";
+import { RecordCard } from "../UI/record_card.slint";
 
 
 
@@ -19,6 +20,7 @@ export component CropsScreen inherits Rectangle {
     callback edit-crop( CropData );
     callback delete-crop(int);
 
+    in-out property <string> current-page: "crops";
     in property <Date> current-date;
     in-out property <ScreenState> screen: {
         selected-id: -1,
@@ -28,11 +30,10 @@ export component CropsScreen inherits Rectangle {
     };
 
     in-out property <bool> has-items: false;
-    in-out property <bool> show-form: false;
     in property <[CropData]> crops: [];
     in-out property <CropData> crop;
 
-    if !root.show-form: UiButton {
+    if current-page == "crops": UiButton {
         x: root.width - self.width;
         y: root.height;
         corner-radius: 50px;
@@ -68,7 +69,7 @@ export component CropsScreen inherits Rectangle {
             horizontal-alignment: center;
         }
 
-        if root.show-form: CropForm {
+        if current-page == "form": CropForm {
             editing: root.screen.is-editing;
             crop <=> root.crop;
             save-crop(crop) => {
@@ -76,11 +77,11 @@ export component CropsScreen inherits Rectangle {
             }
 
             cancel => {
-                root.show-form = false;
+                current-page = "overview";
             }
         }
 
-        if !root.show-form: Flickable {
+        if current-page == "crops": Flickable {
             VerticalBox {
                 spacing: 10px;
 
@@ -100,58 +101,13 @@ export component CropsScreen inherits Rectangle {
                     }
                 }
 
-                for crop in root.crops: Rectangle {
-                    height: 120px;
-                    background: #f4fff5;
-                    border-radius: 8px;
+                for crop in root.crops: RecordCard {
+                    display-text: crop.display-text;
 
-                    Text {
-                        x: 12px;
-                        y: 10px;
-                        width: parent.width - 24px;
-                        height: parent.height - 20px;
-                        text: crop.display-text;
-                        color: #022817;
-                        wrap: word-wrap;
-                        vertical-alignment: center;
-                    }
-
-                    HorizontalBox {
-                        Rectangle {
-                            horizontal-stretch: 1;
-                        }
-                        VerticalBox {
-                            alignment: start;
-                            UiButtonImg {
-                                width: 24px;
-                                height: 24px;
-                                img-height: 23px;
-                                img-width: 23px;
-                                colorize: #002000;
-                                img: @image-url("../Icons/Pencil/Pencil-Write-2.png");
-                                clicked => {
-                                    root.screen.is-editing = true;
-                                    root.screen.selected-id = crop.id;
-                                    root.crop = crop;
-                                    root.edit-crop(
-                                        crop
-                                        );
-                                }
-                            }
-
-                            UiButtonImg {
-                                width: 24px;
-                                height: 24px;
-                                img-height: 23px;
-                                img-width: 23px;
-                                colorize: #b00000;
-                                img: @image-url("../Icons/Trash/Trash-Bin-Circle.png");
-                                clicked => {
-                                    root.screen.pending-delete-id = crop.id;
-                                    root.screen.show-delete-dialog = true;
-                                }
-                            }
-                        }
+                    opened => {
+                        root.screen.selected-id = crop.id;
+                        root.crop = crop;
+                        root.current-page = "overview";
                     }
                 }
             }
@@ -159,13 +115,6 @@ export component CropsScreen inherits Rectangle {
     }
 
     if root.screen.show-delete-dialog: ConfirmDialog {
-        x: (parent.width - self.width) / 2;
-        y: (parent.height - self.height) / 2;
-        size: {x: 320px , y: 180px };
-
-        title: "Delete record?";
-        message: "This record will be permanently deleted. This action cannot be undone.";
-
         cancelled => {
             root.screen.show-delete-dialog = false;
             root.screen.pending-delete-id = -1;

@@ -1,4 +1,3 @@
-import { HomeScreen } from "Screens/home.slint";
 import { CropsScreen } from "Screens/crops.slint";
 import { ReportsScreen } from "Screens/reports.slint";
 import { VerticalBox, HorizontalBox, Date, Button } from "std-widgets.slint";
@@ -11,6 +10,7 @@ import { ActivitiesScreen } from "Screens/activities.slint";
 import { HarvestScreen } from "Screens/harvest.slint";
 import { ScreenState } from "models/screen_state.slint";
 import { ActivityData } from "models/activity_data.slint";
+import { FarmScreen } from "Screens/farm.slint";
 
 component ActiveTabIndicator inherits Rectangle {
     in property <length> _height: 3px;
@@ -42,11 +42,14 @@ export component MainWindow inherits Window {
 
     out property <color> dark-color: #285943;
 
-    in-out property <string> current-screen: "home";
+    in-out property <string> current-screen: "farm";
     in-out property <int> selected-id: -1;
 
+    in-out property <int> active-farm: -1;
+    in property <int> active-group: -1;
+
     in-out property <bool> has-farms: false;
-    in-out property <bool> show-farm-form: false;
+    in-out property <string> farm-current-page: "farms";
     in property <[FarmData]> farms: [];
     in property <[string]> farm-names;
     in-out property <FarmData> farm;
@@ -54,7 +57,7 @@ export component MainWindow inherits Window {
     callback delete-farm(int);
 
     in-out property <bool> has-groups: false;
-    in-out property <bool> show-group-form: false;
+    in-out property <string> group-current-page: "groups";
     in property <[GroupData]> groups: [];
     in property <[string]> group-names;
     in-out property <GroupData> group;
@@ -62,7 +65,7 @@ export component MainWindow inherits Window {
     callback delete-group(int);
 
     in-out property <bool> has-fields: false;
-    in-out property <bool> show-field-form: false;
+    in-out property <string> field-current-page: "fields";
     in property <[FieldData]> fields: [];
     in property <[string]> field-names;
     in-out property <FieldData> field;
@@ -70,7 +73,7 @@ export component MainWindow inherits Window {
     callback delete-field(int);
 
     in-out property <bool> has-crops: false;
-    in-out property <bool> show-crop-form: false;
+    in-out property <string> crop-current-page: "crops";
     in property <[CropData]> crops: [];
     in property <[string]> crop-names;
     in-out property <CropData> crop;
@@ -78,7 +81,7 @@ export component MainWindow inherits Window {
     callback delete-crop(int);
     
     in-out property <bool> has-activities: false;
-    in-out property <bool> show-activity-form: false;
+    in-out property <string> activities-current-page: "activities";
     in property <[ActivityData]> activities: [];
     in-out property <ActivityData> activity;
     callback save-activity(ActivityData);
@@ -192,98 +195,48 @@ export component MainWindow inherits Window {
         spacing: 16px;
         alignment: start;
 
-        if root.current-screen == "home": HomeScreen {
+        if root.current-screen == "farm": FarmScreen {
             dark-color: root.dark-color;
             current-date: root.current-date;
+            current-screen <=> root.current-screen;
 
             farm-has-items: root.has-farms;
-            farm-show-form <=> root.show-farm-form;
+            current-page <=> root.farm-current-page;
             farms <=> root.farms;
 
-            group-has-items: root.has-groups;
-            group-show-form <=> root.show-group-form;
-            groups <=> root.groups;
-
-            field-has-items: root.has-fields;
-            field-show-form <=> root.show-field-form;
-            fields <=> root.fields;
-
-            add-farm => {
-                root.show-farm-form = true;
-            }
-            save-farm(farm) => {
-                root.save-farm(farm);
-            }
+            add-farm => { root.farm-current-page = "form"; }
+            save-farm(farm) => {root.save-farm(farm);}
             edit-farm(farm) => {
                 root.farm = farm;
-                root.show-farm-form = true;
+                root.farm-current-page = "form";
             }
-            delete-farm(id) => {
-                root.delete-farm(id);
-            }
-
-            add-group => {
-                root.show-group-form = true;
-            }
-            save-group(group) => {
-                root.save-group(group);
-            }
-            edit-group(group) => {
-                root.group = group;
-                root.show-group-form = true;
-            }
-            delete-group(id) => {
-                root.delete-group(id);
-            }
-
-            add-field => {
-                root.show-field-form = true;
-            }
-            save-field(field) => {
-                root.save-field(field);
-            }
-            edit-field(field) => {
-                root.field = field;
-                root.show-field-form = true;
-            }
-            delete-field(id) => {
-                root.delete-field(id);
-            }
-
+            delete-farm(id) => {root.delete-farm(id);}
         }
 
         if root.current-screen == "crops": CropsScreen {
             has-items: root.has-crops;
-            show-form <=> root.show-crop-form;
+            current-page <=> root.crop-current-page;
             crops <=> root.crops;
             current-date: root.current-date;
 
-            add-crop => {
-                root.show-crop-form = true;
-            }
-
-            save-crop(crop) => {
-                root.save-crop(crop);
-            }
-
+            add-crop => {root.crop-current-page = "form";}
+            save-crop(crop) => {root.save-crop(crop);}
             edit-crop(crop) => {
                 root.crop = crop;
-                root.show-crop-form = true;
+                root.crop-current-page = "form";
             }
-            delete-crop(id) => {
-                root.delete-crop(id);
-            }
+            delete-crop(id) => {root.delete-crop(id);}
         }
 
         if root.current-screen == "activities": ActivitiesScreen {
             has-items: root.has-activities;
-            show-form <=> root.show-activity-form;
+            current-page <=> root.activities-current-page;
             activities <=> root.activities;
             current-date: root.current-date;
             crop-names: root.crop-names;
 
             add-activity => {
-                root.show-activity-form = true;
+                root.activities-current-page = "form";
             }
 
             save-activity(activity) => {
@@ -292,7 +245,7 @@ export component MainWindow inherits Window {
 
             edit-activity(activity) => {
                 root.activity = activity;
-                root.show-activity-form = true;
+                root.activities-current-page = "form";
             }
             delete-activity(id) => {
                 root.delete-activity(id);
