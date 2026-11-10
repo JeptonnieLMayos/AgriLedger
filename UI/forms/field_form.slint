@@ -1,14 +1,14 @@
 import { VerticalBox, Date, TextEdit } from "std-widgets.slint";
-import { UiButton } from "../UI/ui_button.slint";
-import { UILineEdit } from "../UI/ui_line_edit.slint";
-import { UIComboBox } from "../UI/ui_combo_box.slint";
-import { UIDatePicker } from "../UI/ui_date_picker.slint";
-import { FarmData } from "../models/farm_data.slint";
-import { UITextEdit } from "../UI/ui_text_edit.slint";
+import { UiButton } from "../components/ui_button.slint";
+import { UILineEdit } from "../components/ui_line_edit.slint";
+import { UIComboBox } from "../components/ui_combo_box.slint";
+import { UIDatePicker } from "../components/ui_date_picker.slint";
+import { FieldData } from "../models/field_data.slint";
+import { UITextEdit } from "../components/ui_text_edit.slint";
 
-export component FarmForm inherits VerticalBox {
-    callback save-farm(
-        FarmData
+export component FieldForm inherits VerticalBox {
+    callback save-field(
+        FieldData
     );
     callback cancel();
     
@@ -16,7 +16,7 @@ export component FarmForm inherits VerticalBox {
 
     in property <Date> current-date;
     in property <bool> editing: false;
-    in-out property <FarmData> farm; 
+    in-out property <FieldData> field; 
 
 
     Text {
@@ -33,19 +33,19 @@ export component FarmForm inherits VerticalBox {
 
 
     UILineEdit {
-        _text <=> root.farm.name;
+        _text <=> root.field.name;
     }
 
 
 
     Text {
-        text: "Description";
+        text: "Area";
         color: #022817;
     }
 
 
     UILineEdit {
-        _text <=> root.farm.description;
+        // _text <=> root.field.area;
     }
 
     Text {
@@ -54,17 +54,17 @@ export component FarmForm inherits VerticalBox {
     }
 
     UILineEdit {
-        _text <=> root.farm.notes;
+        _text <=> root.field.notes;
     }
 
     UiButton {
         label: root.editing ? "Save Changes" : "Save";
         clicked => {
-            if root.farm.name == "" {
+            if root.field.name == "" {
                 return;
             }
-            root.save-farm(
-                farm
+            root.save-field(
+                field
             );
         }
     }

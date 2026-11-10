@@ -1,14 +1,14 @@
 
 import { VerticalBox, Date, HorizontalBox } from "std-widgets.slint";
-import { UiButton } from "../UI/ui_button.slint";
+import { UiButton } from "../components/ui_button.slint";
 import { ActivityForm } from "../forms/activity_form.slint";
 import { ActivityData } from "../models/activity_data.slint";
 import { ScreenState } from "../models/screen_state.slint";
 import { CropData } from "../models/crop_data.slint";
-import { UiButtonImg } from "../UI/ui_button_img.slint";
-import { ConfirmDialog } from "../UI/confirm_dialog.slint";
-import { RecordCard } from "../UI/record_card.slint";
-import { RecordDeleteDialog } from "../UI/record_delete_dialog.slint";
+import { UiButtonImg } from "../components/ui_button_img.slint";
+import { ConfirmDialog } from "../components/confirm_dialog.slint";
+import { RecordCard } from "../components/record_card.slint";
+import { RecordDeleteDialog } from "../components/record_delete_dialog.slint";
 
 export component ActivitiesScreen inherits Rectangle {
     callback go-back();

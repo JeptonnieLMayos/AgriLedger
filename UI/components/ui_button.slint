@@ -4,6 +4,8 @@ export component UiButton inherits Rectangle {
     in property <color> text-color: white;
     in property <length> button-height: 44px;
     in property <length> corner-radius: 8px;
+    in property <TextHorizontalAlignment> label-horizontal-alignment: center;
+    in property <TextVerticalAlignment> label-vertical-alignment: center;
 
     in property <length> _font-size: 0rem;
 
@@ -17,8 +19,8 @@ export component UiButton inherits Rectangle {
     Text {
         text: label;
         color: text-color;
-        horizontal-alignment: center;
-        vertical-alignment: center;
+        horizontal-alignment: label-horizontal-alignment;
+        vertical-alignment: label-vertical-alignment;
         font-size: _font-size;
     }
 

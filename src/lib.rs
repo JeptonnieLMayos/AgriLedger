@@ -2,7 +2,7 @@ mod db;
 
 slint::include_modules!();
 
-use slint::{ModelRc, VecModel, SharedString};
+use slint::{ModelRc, VecModel, SharedString, ToSharedString};
 use chrono::{Datelike};
 
 #[cfg(target_os = "android")]
@@ -99,7 +99,7 @@ fn android_main(app: slint::android::AndroidApp) {
             if let Err(error) = refresh_farms(&window, &farm_conn) {
                 eprintln!("Could not refresh farms: {error}");  // log
             } else {
-                window.set_show_farm_form(false);
+                window.set_farm_current_page("farms".to_shared_string());
             }
         }
     });
@@ -141,7 +141,7 @@ fn android_main(app: slint::android::AndroidApp) {
             if let Err(error) = refresh_groups(&window, &group_conn) {
                 eprintln!("Could not refresh groups: {error}");  // log
             } else {
-                window.set_show_group_form(false);
+                window.set_group_current_page("groups".to_shared_string());
             }
         }
     });
@@ -185,7 +185,7 @@ fn android_main(app: slint::android::AndroidApp) {
             if let Err(error) = refresh_fields(&window, &field_conn) {
                 eprintln!("Could not refresh fields: {error}");  // log
             } else {
-                window.set_show_field_form(false);
+                window.set_field_current_page("fields".to_shared_string());
             }
         }
     });
@@ -242,7 +242,7 @@ fn android_main(app: slint::android::AndroidApp) {
             if let Err(error) = refresh_crops(&window, &crop_conn) {
                 eprintln!("Could not refresh crops: {error}");  // log
             } else {
-                window.set_show_crop_form(false);
+                window.set_crop_current_page("crops".to_shared_string());
             }
         }
     });
@@ -309,7 +309,7 @@ fn android_main(app: slint::android::AndroidApp) {
             if let Err(error) = refresh_activities(&window, &activity_conn) {
                 eprintln!("Could not refresh activities: {error}");  // log
             } else {
-                window.set_show_activity_form(false);
+                window.set_activities_current_page("activities".to_shared_string());
             }
         }
     });
