@@ -31,6 +31,9 @@ export component ActivitiesScreen inherits Rectangle {
     in-out property <ActivityData> activity;
     in property <[string]> crop-names;
 
+    in property <color> dark-color;
+    in-out property <string> head-text: "Crops";
+
     if current-page == "activities": UiButton {
         x: root.width - self.width ;
         y: root.height;
@@ -62,11 +65,31 @@ export component ActivitiesScreen inherits Rectangle {
    VerticalBox {
         padding: 24px;
         spacing: 16px;
-        Text {
-            text: "Activities";
-            font-size: 18px;
-            font-weight: 700;
-            color: #022817;
+        HorizontalLayout {
+            Rectangle {
+                height: 32px;
+                width: 44px;
+                if root.current-page != "activities" : UiButtonImg {
+                    img: @image-url("../../Icons/Arrows/Arrow-Circle-Left-Fill.png");
+                    img-height: 32px;
+                    img-width: 32px;
+                    colorize: dark-color;
+                    clicked => {
+                        current-page =  current-page == "overview" ? "activities" :
+                                        current-page == "form" && screen.is-editing ? "overview" :
+                                        current-page == "form" && !screen.is-editing ? "activities" :
+                                        "activities";
+                    }
+                }
+            } 
+
+            Text {
+                text: head-text;
+                font-size: 22px;
+                font-weight: 700;
+                color: #022817;
+                horizontal-alignment: start;
+            }
         }
 
         if current-page == "form": ActivityForm {
@@ -78,7 +101,10 @@ export component ActivitiesScreen inherits Rectangle {
             }
 
             cancel => {
-                current-page == "overview";
+                current-page = 
+                    root.screen.is-editing? 
+                    "overview" : 
+                    "activities";
             }
         }
 
@@ -118,7 +144,7 @@ export component ActivitiesScreen inherits Rectangle {
                         opened => {
                             root.screen.selected-id = activity.id;
                             root.activity = activity;
-                            root.current-page = "activity-overview";
+                            root.current-page = "overview";
                         }
                     }
                 }

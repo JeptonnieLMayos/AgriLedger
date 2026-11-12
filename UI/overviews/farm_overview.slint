@@ -7,6 +7,9 @@ import { FarmData } from "../models/farm_data.slint";
 import { UITextEdit } from "../components/ui_text_edit.slint";
 
 export component FarmOverview inherits VerticalBox {
+    callback go-back();
+
+    in-out property <FarmData> farm;
 
     Rectangle {
         background: #f4fff5;
@@ -17,7 +20,7 @@ export component FarmOverview inherits VerticalBox {
             HorizontalBox {
                 padding: 0px;
                 Text {
-                    text: "My Farm";
+                    text: farm.name;
                     color: black;
                     font-weight: 800;
                     font-size: 14px;
@@ -31,16 +34,11 @@ export component FarmOverview inherits VerticalBox {
                         source: @image-url("../../Icons/Menu/Navigation-Menu-Horizontal-1.png");
                         colorize: #285943;
                     }
-                    Rectangle {
-                        width: 24px;
-                        vertical-stretch: 1;
-                    }
                 }
             }
-            Text {
-                text: "This is my farm description. ";
+            if farm.description != "": Text {
+                text: farm.description;
                 color: gray;
-                // font-italic: true;
                 font-size: 12px;
                 font-weight: 600;
                 vertical-alignment: center;
@@ -48,12 +46,11 @@ export component FarmOverview inherits VerticalBox {
                 wrap: word-wrap;
                 overflow: elide;
             }
-            Text {
-                text: "This is my farm notes. ";
+            if farm.notes != "": Text {
+                text: farm.notes;
                 color: gray;
                 font-italic: true;
                 font-size: 12px;
-                // font-weight: 600;
                 vertical-alignment: center;
                 horizontal-alignment: start;
                 wrap: word-wrap;
@@ -62,56 +59,5 @@ export component FarmOverview inherits VerticalBox {
         }
     }
 
-    Text {
-        text: "Field Groups";
-        color: black;
-        font-weight: 700;
-        font-size: 16px;
-    }
 
-    property <[int]> gr: [1,2,3,4];
-
-    for g in gr: Rectangle {
-        background: #f4fff5;
-        border-radius: 12px;
-        VerticalLayout {
-            padding: 12px;
-            spacing: 12px;
-            HorizontalBox {
-                padding: 0px;
-                Text {
-                    text: "Group " + g;
-                    color: black;
-                    font-weight: 800;
-                    font-size: 14px;
-                    horizontal-alignment: start;
-                    vertical-alignment: center;
-                }
-                VerticalBox {
-                    spacing: 0px;
-                    padding: 0px;
-                    Image {
-                        source: @image-url("../../Icons/Menu/Navigation-Menu-Horizontal-1.png");
-                        colorize: #285943;
-                    }
-                    Rectangle {
-                        width: 24px;
-                        vertical-stretch: 1;
-                    }
-                }
-            }
-            property<[int]> items: [1,2,3,4,5];
-            for i in items: Text {
-                text: "Field " + i;
-                color: gray;
-                font-size: 12px;
-                font-weight: 600;
-                vertical-alignment: center;
-                horizontal-alignment: start;
-                wrap: word-wrap;
-                overflow: elide;
-            }
-
-        }
-    }
 }

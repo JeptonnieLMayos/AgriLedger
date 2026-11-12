@@ -18,7 +18,6 @@ import { FarmOverview } from "../overviews/farm_overview.slint";
 
 export component FarmScreen inherits Rectangle {
     
-    
     callback add-farm();
     callback save-farm( FarmData );
     callback edit-farm( FarmData );
@@ -58,6 +57,8 @@ export component FarmScreen inherits Rectangle {
     in property <Date> current-date;
     in-out property <string> current-screen;
     in-out property <string> current-page;
+
+    in-out property <string> head-text: "Farms";
     
     in-out property <bool> farm-has-items: false;
     in property <[FarmData]> farms: [];
@@ -73,7 +74,7 @@ export component FarmScreen inherits Rectangle {
     in-out property <int> name;
 
 
-    if root.current-page == "farm-form": UiButton {
+    if root.current-page == "farms": UiButton {
         x: root.width - self.width;
         y: root.height;
         corner-radius: 50px;
@@ -88,25 +89,41 @@ export component FarmScreen inherits Rectangle {
             root.farm.name = "";
             root.farm.description = "";
             root.farm.notes = "";
-            root.add-farm();
+            add-farm();
         }
     }
-
-
 
     VerticalLayout {
     padding: 24px;
     spacing: 16px;
+    
+        HorizontalLayout {
+            Rectangle {
+                height: 32px;
+                width: 44px;
+                if root.current-page != "farms" : UiButtonImg {
+                    img: @image-url("../../Icons/Arrows/Arrow-Circle-Left-Fill.png");
+                    img-height: 32px;
+                    img-width: 32px;
+                    colorize: dark-color;
+                    clicked => {
+                        current-page =  current-page == "overview" ? "farms" :
+                                        current-page == "form" && screen-farm.is-editing ? "overview" :
+                                        current-page == "form" && !screen-farm.is-editing ? "farms" :
+                                        "farms";
+                    }
+                }
+            } 
 
-        Text {
-            text: "FARMS";
-            font-size: 22px;
-            font-weight: 700;
-            color: #022817;
-            horizontal-alignment: center;
+            Text {
+                text: head-text;
+                font-size: 22px;
+                font-weight: 700;
+                color: #022817;
+                horizontal-alignment: start;
+            }
         }
 
-        
 
         if root.current-page == "farms": Flickable {
             VerticalBox {
@@ -135,6 +152,7 @@ export component FarmScreen inherits Rectangle {
                         root.screen-farm.selected-id = farm.id;
                         root.farm = farm;
                         root.current-page = "overview";
+                        root.head-text = "Farm Overview";
                     }
                 }
             }
@@ -142,14 +160,20 @@ export component FarmScreen inherits Rectangle {
         }
 
         if current-page == "overview": FarmOverview {
-
+            go-back => {current-page = "farms";}
         }
 
-        if current-page == "farm-form": FarmForm {
+        if current-page == "form": FarmForm {
             editing: root.screen-farm.is-editing;
             farm <=> root.farm;
             save-farm(farm) => {root.save-farm(farm);}
-            cancel => {current-page = "overview";}
+            cancel => 
+            {
+                current-page = 
+                    root.screen-farm.is-editing? 
+                    "overview" : 
+                    "farms";
+            }
         }
     }
 

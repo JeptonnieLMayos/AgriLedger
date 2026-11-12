@@ -46,7 +46,7 @@ pub fn initialize(path: &Path) -> Result<Connection> {
             id INTEGER PRIMARY KEY,
             category TEXT not NULL,
             description TEXT,
-            crop_id INTEGER REFERENCES crops(id) ON DELETE SET NULL,
+            crop_id INTEGER,
             material_id INTEGER,
             scheduled_at TEXT NOT NULL,
             status TEXT,
@@ -63,7 +63,7 @@ pub fn initialize(path: &Path) -> Result<Connection> {
 
         CREATE TABLE IF NOT EXISTS activity_material (
             id INTEGER PRIMARY KEY,
-            activity_id INTEGER NOT NULL,
+            activity_id,
             quantity REAL NOT NULL,
             unit TEXT NOT NULL,
             cost REAL DEFAULT 0

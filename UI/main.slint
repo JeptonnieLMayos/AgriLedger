@@ -42,14 +42,14 @@ export component MainWindow inherits Window {
 
     out property <color> dark-color: #285943;
 
-    in-out property <string> current-screen: "farm";
+    in-out property <string> current-screen: "farms";
     in-out property <int> selected-id: -1;
 
     in-out property <int> active-farm: -1;
     in property <int> active-group: -1;
 
     in-out property <bool> has-farms: false;
-    in-out property <string> farm-current-page: "overview";
+    in-out property <string> farm-current-page: "farms";
     in property <[FarmData]> farms: [];
     in property <[string]> farm-names;
     in-out property <FarmData> farm;
@@ -191,11 +191,11 @@ export component MainWindow inherits Window {
 
     VerticalBox {
         padding: 24px;
-        padding-top: 32px;
+        padding-top: 0px;
         spacing: 16px;
         alignment: start;
 
-        if root.current-screen == "farm": FarmScreen {
+        if root.current-screen == "farms": FarmScreen {
             dark-color: root.dark-color;
             current-date: root.current-date;
             current-screen <=> root.current-screen;
@@ -214,6 +214,7 @@ export component MainWindow inherits Window {
         }
 
         if root.current-screen == "crops": CropsScreen {
+            dark-color: root.dark-color;
             has-items: root.has-crops;
             current-page <=> root.crop-current-page;
             crops <=> root.crops;
@@ -229,6 +230,7 @@ export component MainWindow inherits Window {
         }
 
         if root.current-screen == "activities": ActivitiesScreen {
+            dark-color: root.dark-color;
             has-items: root.has-activities;
             current-page <=> root.activities-current-page;
             activities <=> root.activities;
@@ -297,11 +299,11 @@ Rectangle {
                     height: 64px;
                     img: @image-url("../Icons/Home/Bird-House.png");
                     clicked => {
-                        root.current-screen = "home";
+                        root.current-screen = "farms";
                     }
                 }
                 ActiveTabIndicator {
-                    active: current-screen == "home" ? true : false;
+                    active: current-screen == "farms" ? true : false;
                 }
             }
             
