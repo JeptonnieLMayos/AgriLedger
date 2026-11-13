@@ -160,7 +160,23 @@ export component FarmScreen inherits Rectangle {
         }
 
         if current-page == "overview": FarmOverview {
-            go-back => {current-page = "farms";}
+            go-back => {
+                current-page = "farms";
+                root.screen-farm.selected-id = -1;
+            }
+            edit(farm) => {
+                root.screen-farm.is-editing = true;
+                current-page = "form";
+            }
+            delete(id) => {
+                root.delete-farm(id);
+                root.screen-farm.selected-id = -1;
+            }
+            farm <=> root.farm;
+            screen <=> screen-farm;
+            groups: root.groups;
+            fields: root.fields;
+            dark-color: root.dark-color;
         }
 
         if current-page == "form": FarmForm {
@@ -179,16 +195,5 @@ export component FarmScreen inherits Rectangle {
 
     
 
-    if root.screen-farm.show-delete-dialog: RecordDeleteDialog {
-        cancelled => {
-            root.screen-farm.show-delete-dialog = false;
-            root.screen-farm.pending-delete-id = -1;
-        }
 
-        confirmed => {
-            root.delete-farm(root.screen-farm.pending-delete-id);
-            root.screen-farm.show-delete-dialog = false;
-            root.screen-farm.pending-delete-id = -1;
-        }
-    }
 }

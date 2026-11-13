@@ -28,8 +28,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let window = MainWindow::new()?;
 
     refresh_farms(&window, &farm_conn)?;
-    refresh_groups(&window, &group_conn)?;
-    refresh_fields(&window, &field_conn)?;
+    // refresh_groups(&window, &group_conn)?;
+    // refresh_fields(&window, &field_conn)?;
     refresh_crops(&window, &crop_conn)?;
     refresh_activities(&window, &activity_conn)?;
     
@@ -134,7 +134,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         if let Some(window) = group_weak_window.upgrade() {
-            match refresh_groups(&window, &group_conn) {
+            match refresh_groups(&window, &group_conn, window.get_farm().id as i64) {
                 Ok(()) => window.set_group_current_page("groups".to_shared_string()),
                 Err(error) => eprintln!("Could not refresh groups: {error}"),
             }
@@ -323,7 +323,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match db::groups::delete_group(&delete_group_conn, id as i64) {
             Ok(true) => {
                 if let Some(window) = delete_group_weak_window.upgrade() {
-                    if let Err(error) = refresh_groups(&window, &delete_group_conn) {
+                    if let Err(error) = refresh_groups(&window, &delete_group_conn,window.get_farm().id as i64) {
                         eprintln!("Could not refresh groups: {error}");  // log
                     }
                 }
@@ -441,8 +441,9 @@ fn refresh_farms(
 fn refresh_groups(
     window: &MainWindow,
     conn: &rusqlite::Connection,
+    farm_id: i64
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let groups = db::groups::get_groups(conn)?;
+    let groups = db::groups::get_groups_by_farm(conn, farm_id)?;
     let mut group_names: Vec<SharedString> = vec![
     SharedString::from("Not specified")
     ];

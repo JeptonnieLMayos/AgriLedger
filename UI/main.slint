@@ -23,7 +23,7 @@ component ActiveTabIndicator inherits Rectangle {
 export component MainWindow inherits Window {
     title: "AgriLedger";
     preferred-width: 420px;
-    preferred-height: 600px;
+    preferred-height: 900px;
     background: #c2cbbd;
     
 
@@ -43,13 +43,10 @@ export component MainWindow inherits Window {
     out property <color> dark-color: #285943;
 
     in-out property <string> current-screen: "farms";
-    in-out property <int> selected-id: -1;
 
-    in-out property <int> active-farm: -1;
-    in property <int> active-group: -1;
 
     in-out property <bool> has-farms: false;
-    in-out property <string> farm-current-page: "farms";
+    in-out property <string> farm-current-page: "overview";
     in property <[FarmData]> farms: [];
     in property <[string]> farm-names;
     in-out property <FarmData> farm;
@@ -210,7 +207,10 @@ export component MainWindow inherits Window {
                 root.farm = farm;
                 root.farm-current-page = "form";
             }
-            delete-farm(id) => {root.delete-farm(id);}
+            delete-farm(id) => {
+                root.delete-farm(id);
+                root.farm-current-page = "farms";
+            }
         }
 
         if root.current-screen == "crops": CropsScreen {

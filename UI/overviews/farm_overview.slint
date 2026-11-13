@@ -5,39 +5,172 @@ import { UIComboBox } from "../components/ui_combo_box.slint";
 import { UIDatePicker } from "../components/ui_date_picker.slint";
 import { FarmData } from "../models/farm_data.slint";
 import { UITextEdit } from "../components/ui_text_edit.slint";
+import { UiButtonImg } from "../components/ui_button_img.slint";
+import { RecordMenu } from "../components/record_menu.slint";
+import { RecordDeleteDialog } from "../components/record_delete_dialog.slint";
+import { ScreenState } from "../models/screen_state.slint";
+import { GroupData } from "../models/group_data.slint";
+import { FieldData } from "../models/field_data.slint";
 
 export component FarmOverview inherits VerticalBox {
     callback go-back();
+    callback edit(FarmData);
+    callback delete(int);
+    callback add-group();
+    callback add-field();
 
     in-out property <FarmData> farm;
+    in property <[GroupData]> groups;
+    in property <[FieldData]> fields;
+    in property <color> dark-color;
+    in-out property <bool> record-menu-opened: false;
+    in-out property <ScreenState> screen;
+
+// Mock data
+property <FarmData> sample_farm: {
+    id: 0,
+    name: "mifarm",
+    description: "midescription",
+    notes: "minotes"
+};
+
+property <[GroupData]> sample_groups_empty: [];
+
+property <[GroupData]> sample_groups: [
+    {
+        id: 1,
+        farm_id: 0,
+        name: "North Area",
+        description: "Vegetable production area",
+        notes: "Main growing area",
+        display-text: "North Area"
+    },
+    {
+        id: 2,
+        farm_id: 0,
+        name: "South Area",
+        description: "Rice production area",
+        notes: "Used during the rainy season",
+        display-text: "South Area"
+    },
+    {
+        id: 3,
+        farm_id: 0,
+        name: "East Area",
+        description: "Experimental growing area",
+        notes: "For testing new crops",
+        display-text: "East Area"
+    }
+];
+
+property <[FieldData]> sample_fields_empty: [];
+
+property <[FieldData]> sample_fields: [
+    {
+        id: 1,
+        farm_id: 0,
+        group_id: 1,
+        name: "Field 1",
+        area: 0.5,
+        notes: "Flat land",
+        display-text: "Field 1"
+    },
+    {
+        id: 2,
+        farm_id: 0,
+        group_id: 1,
+        name: "Field 2",
+        area: 0.3,
+        notes: "Near the irrigation channel",
+        display-text: "Field 2"
+    },
+    // {
+    //     id: 3,
+    //     farm_id: 0,
+    //     group_id: 2,
+    //     name: "Field 3",
+    //     area: 0.8,
+    //     notes: "Rice field",
+    //     display-text: "Field 3"
+    // },
+    // {
+    //     id: 4,
+    //     farm_id: 0,
+    //     group_id: 2,
+    //     name: "Field 4",
+    //     area: 0.6,
+    //     notes: "Low-lying area",
+    //     display-text: "Field 4"
+    // },
+    // {
+    //     id: 5,
+    //     farm_id: 0,
+    //     group_id: 3,
+    //     name: "Field 5",
+    //     area: 0.2,
+    //     notes: "Small experimental plot",
+    //     display-text: "Field 5"
+    // },
+    // {
+    //     id: 6,
+    //     farm_id: 0,
+    //     group_id: 3,
+    //     name: "Field 6",
+    //     area: 0.4,
+    //     notes: "Raised beds",
+    //     display-text: "Field 6"
+    // }
+];
+
+
+// End mock data
+
+    property <int> name;
+    
+
 
     Rectangle {
         background: #f4fff5;
         border-radius: 12px;
+        
         VerticalLayout {
             padding: 12px;
             spacing: 12px;
             HorizontalBox {
                 padding: 0px;
                 Text {
-                    text: farm.name;
+                    // text: farm.name;
+                    text: sample_farm.name;
                     color: black;
                     font-weight: 800;
                     font-size: 14px;
                     horizontal-alignment: start;
                     vertical-alignment: center;
                 }
-                VerticalBox {
-                    spacing: 0px;
-                    padding: 0px;
-                    Image {
-                        source: @image-url("../../Icons/Menu/Navigation-Menu-Horizontal-1.png");
-                        colorize: #285943;
+                Rectangle {
+                    vertical-stretch: 1;
+                }
+                Rectangle {
+                    Text {
+                        text: "...";
+                        color: dark-color;
+                        font-size: 16px;
+                        font-weight: 700;
+                    }
+                    TouchArea {
+                        clicked => {
+                            record-menu-opened = !record-menu-opened;
+                        }
                     }
                 }
             }
-            if farm.description != "": Text {
-                text: farm.description;
+
+            Rectangle {
+                background: lightgray;
+                height: 1px;
+            }
+            if sample_farm.description != "": Text { //
+                text: sample_farm.description; //
                 color: gray;
                 font-size: 12px;
                 font-weight: 600;
@@ -46,8 +179,8 @@ export component FarmOverview inherits VerticalBox {
                 wrap: word-wrap;
                 overflow: elide;
             }
-            if farm.notes != "": Text {
-                text: farm.notes;
+            if sample_farm.notes != "": Text {
+                text: sample_farm.notes;
                 color: gray;
                 font-italic: true;
                 font-size: 12px;
@@ -55,9 +188,224 @@ export component FarmOverview inherits VerticalBox {
                 horizontal-alignment: start;
                 wrap: word-wrap;
             }
+            if sample_farm.description == "": Rectangle {
+                height: 1px;
+            }
+            if sample_farm.notes == "": Rectangle {
+                height: 1px;
+            }
+                
 
         }
+        if record-menu-opened: RecordMenu{
+            x: root.width - self.width;
+            y: 0;
+            x-clicked => { record-menu-opened = false; }
+            edit-clicked() => {
+                edit(sample_farm);
+            }
+            delete-clicked => {
+                root.screen.pending-delete-id = sample_farm.id;
+                screen.show-delete-dialog = true;
+                record-menu-opened = false;
+            }
+        }
     }
+
+    Rectangle {
+        background: transparent;
+        border-radius: 12px;
+        border-width: 2px;
+        border-color: dark-color;
+        VerticalLayout {
+            padding: 12px;
+            spacing: 8px;
+            Text {
+                text: "Groups";
+                color: black;
+                font-weight: 600;
+            }
+
+            Flickable {
+                VerticalLayout {
+                    spacing: 8px;
+                    for group in sample_groups: Rectangle {
+                        background: #f4fff5;
+                        border-radius: 12px;
+                        VerticalBox {
+                            padding: 8px;
+                            HorizontalBox {
+                                padding: 5px;
+                                Image {
+                                    source: @image-url("../../Icons/Folder/Folder.png");
+                                    image-fit: contain;
+                                    width: 16px;
+                                    height: 16px;
+                                }
+                                Text {
+                                    text: group.name;
+                                    color: black;
+                                    font-size: 12px;
+                                    font-weight: 700;
+                                }
+                                Rectangle {
+                                    vertical-stretch: 1;
+                                }
+                                Rectangle {
+                                    Text {
+                                        text: "...";
+                                        color: dark-color;
+                                        font-size: 16px;
+                                        font-weight: 700;
+                                    }
+                                    TouchArea {
+                                        clicked => {
+                                            debug("group menu clicked")
+                                        }
+                                    }
+                                }
+                            }
+                            Rectangle {
+                                height: 1px;
+                                background: lightgray;
+                            }
+        
+                            
+        
+                           for field in sample_fields : Rectangle {
+                                VerticalBox {
+                                    padding: 8px;
+                                    HorizontalBox {
+                                        padding: 5px;
+                                        Image {
+                                            source: @image-url("../../Icons/L/Plant-Mint-Minting.png");
+                                            image-fit: contain;
+                                            width: 16px;
+                                            height: 16px;
+                                        }
+                                        Text {
+                                            text: field.name;
+                                            color: black;
+                                            font-size: 12px;
+                                            font-weight: 700;
+                                        }
+                                        Rectangle {
+                                            vertical-stretch: 1;
+                                        }
+                                        Rectangle {
+                                            Text {
+                                                text: "...";
+                                                color: dark-color;
+                                                font-size: 16px;
+                                                font-weight: 700;
+                                            }
+                                            TouchArea {
+                                                clicked => {
+                                                    debug("field menu clicked")
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                           }
+                            Rectangle {
+                                border-radius: 12px;
+                                background: #ddeadd;
+                                height: 32px;
+        
+                                HorizontalBox {
+                                    alignment: center;
+                                    padding: 8px;
+        
+                                        Text {
+                                            text: "+";
+                                            color: dark-color;
+                                            font-weight: 550;
+                                        }
+                                    Text {
+                                        text: "Add field";
+                                        color: dark-color;
+                                        font-weight: 550;
+                                    }
+                                }
+        
+                                TouchArea {
+                                    width: parent.width;
+                                    height: parent.height;
+        
+                                    clicked => {
+                                        add-field();
+                                        debug("add field");
+                                    };
+                                    
+                                }
+                            }
+                            
+        
+                        }
+        
+                    }
+                }
+            }
+
+            Rectangle {
+                border-radius: 12px;
+                border-width: 1px;
+                border-color: dark-color;
+                // background: #f4fff5;
+                background: transparent;
+                height: 44px;
+
+                HorizontalBox {
+                    alignment: center;
+                    padding: 14px;
+                    Rectangle {
+                        border-color: dark-color;
+                        border-width: 2px;
+                        border-radius: 50px;
+                        width: 15px;
+                        height: 15px;
+                        
+                        Text {
+                            text: "+";
+                            color: dark-color;
+                            font-weight: 550;
+                        }
+                    }
+                    Text {
+                        text: "Add Group";
+                        color: dark-color;
+                        font-weight: 550;
+                    }
+                }
+
+                TouchArea {
+                    width: parent.width;
+                    height: parent.height;
+
+                    clicked => {
+                        add-group();
+                        debug("add group");
+                    };
+                    
+                }
+            }
+            
+        }
+    }
+    if root.screen.show-delete-dialog: RecordDeleteDialog {
+        cancelled => {
+            root.screen.show-delete-dialog = false;
+            root.screen.pending-delete-id = -1;
+        }
+
+        confirmed => {
+            root.delete(root.screen.pending-delete-id);
+            root.screen.pending-delete-id = -1;
+            root.screen.show-delete-dialog = false;
+        }
+    }
+
 
 
 }

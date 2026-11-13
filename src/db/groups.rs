@@ -102,10 +102,11 @@ pub struct FarmRecord {
     pub notes: String,
 }
 
-pub fn get_groups(conn: &Connection) -> Result<Vec<FarmRecord>> {
+pub fn get_groups_by_farm(conn: &Connection, farm_id: i64) -> Result<Vec<FarmRecord>> {
     let mut stmt = conn.prepare(
         "SELECT id, farm_id, name, description, notes
          FROM groups
+         WHERE farm_id = ?1
          ORDER BY id",
     )?;
 

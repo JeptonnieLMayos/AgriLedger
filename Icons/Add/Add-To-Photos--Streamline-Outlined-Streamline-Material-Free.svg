@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="24" width="24">
+  <g id="Add-To-Photos">
+    <path id="Union" fill="#000000" d="M4 20h14v2H3c-0.55228 0 -1 -0.4477 -1 -1V6h2zM21.1025 2.00488C21.6067 2.05621 22 2.48232 22 3v14c0 0.5523 -0.4477 1 -1 1H7c-0.55228 0 -1 -0.4477 -1 -1V3l0.00488 -0.10254C6.05621 2.39333 6.48232 2 7 2h14zM8 16h12V4H8zm7 -7h3v2h-3v3h-2v-3h-3V9h3V6h2z" stroke-width="1"></path>
+  </g>
+</svg>

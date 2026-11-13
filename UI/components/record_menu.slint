@@ -1,0 +1,103 @@
+
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { UiButtonImg } from "ui_button_img.slint";
+
+export component RecordMenu inherits Rectangle {
+    callback edit-clicked();
+    callback delete-clicked();
+    callback x-clicked();
+
+    width: 100px;
+    height: 100px;
+    background: #ffffff;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: lightgray;
+    drop-shadow-blur: 1px;
+    drop-shadow-offset-x: 1px;
+    drop-shadow-offset-y: 1px;
+    drop-shadow-color: gray;
+
+    VerticalBox {
+        padding: 5px;
+        spacing: 0px;
+        HorizontalLayout {
+            height: 24px;
+            alignment: end;
+            UiButtonImg {
+                width: 24px;
+                height: 24px;
+                img: @image-url("../../Icons/Exit/Backspace-Fill.png");
+                img-height: 24px;
+                img-width: 24px;
+                colorize:  #b00000;
+                clicked => {
+                    x-clicked();
+                }
+            }
+        }
+
+        Rectangle {
+            height: 32px;
+            border-radius: 5px;
+
+            HorizontalBox {
+                padding-left: 10px;
+                alignment: center;
+                Image {
+                    source: @image-url("../../Icons/Pencil/Pencil-Write-2.png");
+                    width: 16px;
+                    height: 16px;
+                    vertical-alignment: center;
+                }
+                Text {
+                    text: "Edit";
+                    color: #333333;
+                    font-weight: 600;
+                    vertical-alignment: center;
+                }
+            }
+
+            TouchArea {
+                clicked => {
+                    root.edit-clicked();
+                }
+            }
+        }
+
+        Rectangle {
+            width: root.width - 10pt;
+            height: 1px;
+            background: lightgray;
+        }
+
+        Rectangle {
+            height: 32px;
+            border-radius: 5px;
+
+            HorizontalBox {
+                padding-left: 10px;
+                alignment: center;
+                Image {
+                    source: @image-url("../../Icons/Trash/Bin-Paper-2.png");
+                    width: 16px;
+                    height: 16px;
+                    vertical-alignment: center;
+                    colorize: #dc3545;
+                }
+                Text {
+                    text: "Delete";
+                    color: #dc3545;
+                    font-weight: 600;
+                    vertical-alignment: center;
+                }
+            }
+
+            TouchArea {
+                clicked => {
+                    root.delete-clicked();
+                }
+            }
+        }
+    }
+}
