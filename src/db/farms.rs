@@ -1,4 +1,5 @@
 use rusqlite::{Connection, Result};
+use crate::models::farm::Farm;
 
 
 pub fn insert_farm(
@@ -87,14 +88,9 @@ pub fn delete_farm(conn: &Connection, id: i64) -> Result<bool> {
 }
 
 
-pub struct FarmRecord {
-    pub id: i64,
-    pub name: String,
-    pub description: String,
-    pub notes: String,
-}
 
-pub fn get_farms(conn: &Connection) -> Result<Vec<FarmRecord>> {
+
+pub fn get_farms(conn: &Connection) -> Result<Vec<Farm>> {
     let mut stmt = conn.prepare(
         "SELECT id, name, description, notes
          FROM farms
@@ -102,7 +98,7 @@ pub fn get_farms(conn: &Connection) -> Result<Vec<FarmRecord>> {
     )?;
 
     let rows = stmt.query_map([], |row| {
-        Ok(FarmRecord {
+        Ok(Farm {
             id: row.get(0)?,
             name: row.get(1)?,
             description: row.get(2)?,

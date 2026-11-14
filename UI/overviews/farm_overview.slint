@@ -84,45 +84,43 @@ property <[FieldData]> sample_fields: [
         notes: "Near the irrigation channel",
         display-text: "Field 2"
     },
-    // {
-    //     id: 3,
-    //     farm_id: 0,
-    //     group_id: 2,
-    //     name: "Field 3",
-    //     area: 0.8,
-    //     notes: "Rice field",
-    //     display-text: "Field 3"
-    // },
-    // {
-    //     id: 4,
-    //     farm_id: 0,
-    //     group_id: 2,
-    //     name: "Field 4",
-    //     area: 0.6,
-    //     notes: "Low-lying area",
-    //     display-text: "Field 4"
-    // },
-    // {
-    //     id: 5,
-    //     farm_id: 0,
-    //     group_id: 3,
-    //     name: "Field 5",
-    //     area: 0.2,
-    //     notes: "Small experimental plot",
-    //     display-text: "Field 5"
-    // },
-    // {
-    //     id: 6,
-    //     farm_id: 0,
-    //     group_id: 3,
-    //     name: "Field 6",
-    //     area: 0.4,
-    //     notes: "Raised beds",
-    //     display-text: "Field 6"
-    // }
+    {
+        id: 3,
+        farm_id: 0,
+        group_id: 2,
+        name: "Field 3",
+        area: 0.8,
+        notes: "Rice field",
+        display-text: "Field 3"
+    },
+    {
+        id: 4,
+        farm_id: 0,
+        group_id: 2,
+        name: "Field 4",
+        area: 0.6,
+        notes: "Low-lying area",
+        display-text: "Field 4"
+    },
+    {
+        id: 5,
+        farm_id: 0,
+        group_id: 3,
+        name: "Field 5",
+        area: 0.2,
+        notes: "Small experimental plot",
+        display-text: "Field 5"
+    },
+    {
+        id: 6,
+        farm_id: 0,
+        group_id: 3,
+        name: "Field 6",
+        area: 0.4,
+        notes: "Raised beds",
+        display-text: "Field 6"
+    }
 ];
-
-
 // End mock data
 
     property <int> name;
@@ -225,7 +223,8 @@ property <[FieldData]> sample_fields: [
                 color: black;
                 font-weight: 600;
             }
-
+            
+            
             Flickable {
                 VerticalLayout {
                     spacing: 8px;
@@ -272,7 +271,7 @@ property <[FieldData]> sample_fields: [
         
                             
         
-                           for field in sample_fields : Rectangle {
+                            for field in sample_fields : Rectangle {
                                 VerticalBox {
                                     padding: 8px;
                                     HorizontalBox {
@@ -307,7 +306,7 @@ property <[FieldData]> sample_fields: [
                                         }
                                     }
                                 }
-                           }
+                            }
                             Rectangle {
                                 border-radius: 12px;
                                 background: #ddeadd;

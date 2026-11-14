@@ -1,4 +1,5 @@
 mod db;
+pub mod models;
 
 slint::include_modules!();
 

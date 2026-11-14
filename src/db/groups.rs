@@ -1,6 +1,5 @@
 use rusqlite::{Connection, Result};
-
-
+use crate::models::group::Group;
 pub fn insert_group(
     conn: &Connection,
     farm_id: i64,
@@ -30,32 +29,6 @@ pub fn count_groups(conn: &Connection) -> Result<i64> {
         |row| row.get(0),
     )
 }
-
-pub fn list_groups(conn: &Connection) -> Result<Vec<String>> {
-    let mut stmt = conn.prepare(
-        "SELECT farm_id, name, description, notes
-         FROM groups
-         ORDER BY id",
-    )?;
-
-    let rows = stmt.query_map([], |row| {
-        let farm_id: i64 = row.get(0)?;
-        let name: String = row.get(1)?;
-        let description: String = row.get(2)?;
-        let notes: String = row.get(3)?;
-
-        Ok(format!(
-            "{} \nFarm {} \nDescription: {}\nNotes: {}",
-            name,
-            farm_id,
-            description,
-            notes
-        ))
-    })?;
-
-    rows.collect()
-}
-
 
 pub fn update_group(
     conn: &Connection,
@@ -93,16 +66,7 @@ pub fn delete_group(conn: &Connection, id: i64) -> Result<bool> {
     Ok(deleted > 0)
 }
 
-
-pub struct FarmRecord {
-    pub id: i64,
-    pub farm_id: i64,
-    pub name: String,
-    pub description: String,
-    pub notes: String,
-}
-
-pub fn get_groups_by_farm(conn: &Connection, farm_id: i64) -> Result<Vec<FarmRecord>> {
+pub fn get_groups_by_farm(conn: &Connection, farm_id: i64) -> Result<Vec<Group>> {
     let mut stmt = conn.prepare(
         "SELECT id, farm_id, name, description, notes
          FROM groups
@@ -111,7 +75,7 @@ pub fn get_groups_by_farm(conn: &Connection, farm_id: i64) -> Result<Vec<FarmRec
     )?;
 
     let rows = stmt.query_map([], |row| {
-        Ok(FarmRecord {
+        Ok(Group {
             id: row.get(0)?,
             farm_id: row.get(1)?,
             name: row.get(2)?,
