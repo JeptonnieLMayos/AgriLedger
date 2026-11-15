@@ -11,118 +11,20 @@ import { RecordDeleteDialog } from "../components/record_delete_dialog.slint";
 import { ScreenState } from "../models/screen_state.slint";
 import { GroupData } from "../models/group_data.slint";
 import { FieldData } from "../models/field_data.slint";
+import { GroupWithFields } from "../models/group_with_fields.slint";
 
 export component FarmOverview inherits VerticalBox {
     callback go-back();
     callback edit(FarmData);
     callback delete(int);
-    callback add-group();
+    callback add-group(int);
     callback add-field();
 
     in-out property <FarmData> farm;
-    in property <[GroupData]> groups;
-    in property <[FieldData]> fields;
+    in property <[GroupWithFields]> groups-with-fields;
     in property <color> dark-color;
     in-out property <bool> record-menu-opened: false;
-    in-out property <ScreenState> screen;
-
-// Mock data
-property <FarmData> sample_farm: {
-    id: 0,
-    name: "mifarm",
-    description: "midescription",
-    notes: "minotes"
-};
-
-property <[GroupData]> sample_groups_empty: [];
-
-property <[GroupData]> sample_groups: [
-    {
-        id: 1,
-        farm_id: 0,
-        name: "North Area",
-        description: "Vegetable production area",
-        notes: "Main growing area",
-        display-text: "North Area"
-    },
-    {
-        id: 2,
-        farm_id: 0,
-        name: "South Area",
-        description: "Rice production area",
-        notes: "Used during the rainy season",
-        display-text: "South Area"
-    },
-    {
-        id: 3,
-        farm_id: 0,
-        name: "East Area",
-        description: "Experimental growing area",
-        notes: "For testing new crops",
-        display-text: "East Area"
-    }
-];
-
-property <[FieldData]> sample_fields_empty: [];
-
-property <[FieldData]> sample_fields: [
-    {
-        id: 1,
-        farm_id: 0,
-        group_id: 1,
-        name: "Field 1",
-        area: 0.5,
-        notes: "Flat land",
-        display-text: "Field 1"
-    },
-    {
-        id: 2,
-        farm_id: 0,
-        group_id: 1,
-        name: "Field 2",
-        area: 0.3,
-        notes: "Near the irrigation channel",
-        display-text: "Field 2"
-    },
-    {
-        id: 3,
-        farm_id: 0,
-        group_id: 2,
-        name: "Field 3",
-        area: 0.8,
-        notes: "Rice field",
-        display-text: "Field 3"
-    },
-    {
-        id: 4,
-        farm_id: 0,
-        group_id: 2,
-        name: "Field 4",
-        area: 0.6,
-        notes: "Low-lying area",
-        display-text: "Field 4"
-    },
-    {
-        id: 5,
-        farm_id: 0,
-        group_id: 3,
-        name: "Field 5",
-        area: 0.2,
-        notes: "Small experimental plot",
-        display-text: "Field 5"
-    },
-    {
-        id: 6,
-        farm_id: 0,
-        group_id: 3,
-        name: "Field 6",
-        area: 0.4,
-        notes: "Raised beds",
-        display-text: "Field 6"
-    }
-];
-// End mock data
-
+    in-out property <ScreenState> screen-farm;
     property <int> name;
     
 
@@ -138,7 +40,7 @@ property <[FieldData]> sample_fields: [
                 padding: 0px;
                 Text {
                     // text: farm.name;
-                    text: sample_farm.name;
+                    text: farm.name;
                     color: black;
                     font-weight: 800;
                     font-size: 14px;
@@ -167,8 +69,8 @@ property <[FieldData]> sample_fields: [
                 background: lightgray;
                 height: 1px;
             }
-            if sample_farm.description != "": Text { //
-                text: sample_farm.description; //
+            if farm.description != "": Text { //
+                text: farm.description; //
                 color: gray;
                 font-size: 12px;
                 font-weight: 600;
@@ -177,8 +79,8 @@ property <[FieldData]> sample_fields: [
                 wrap: word-wrap;
                 overflow: elide;
             }
-            if sample_farm.notes != "": Text {
-                text: sample_farm.notes;
+            if farm.notes != "": Text {
+                text: farm.notes;
                 color: gray;
                 font-italic: true;
                 font-size: 12px;
@@ -186,10 +88,10 @@ property <[FieldData]> sample_fields: [
                 horizontal-alignment: start;
                 wrap: word-wrap;
             }
-            if sample_farm.description == "": Rectangle {
+            if farm.description == "": Rectangle {
                 height: 1px;
             }
-            if sample_farm.notes == "": Rectangle {
+            if farm.notes == "": Rectangle {
                 height: 1px;
             }
                 
@@ -200,11 +102,11 @@ property <[FieldData]> sample_fields: [
             y: 0;
             x-clicked => { record-menu-opened = false; }
             edit-clicked() => {
-                edit(sample_farm);
+                edit(farm);
             }
             delete-clicked => {
-                root.screen.pending-delete-id = sample_farm.id;
-                screen.show-delete-dialog = true;
+                root.screen-farm.pending-delete-id = farm.id;
+                screen-farm.show-delete-dialog = true;
                 record-menu-opened = false;
             }
         }
@@ -228,7 +130,7 @@ property <[FieldData]> sample_fields: [
             Flickable {
                 VerticalLayout {
                     spacing: 8px;
-                    for group in sample_groups: Rectangle {
+                    for group-with-field in groups-with-fields: Rectangle {
                         background: #f4fff5;
                         border-radius: 12px;
                         VerticalBox {
@@ -242,7 +144,7 @@ property <[FieldData]> sample_fields: [
                                     height: 16px;
                                 }
                                 Text {
-                                    text: group.name;
+                                    text: group-with-field.group.name;
                                     color: black;
                                     font-size: 12px;
                                     font-weight: 700;
@@ -259,7 +161,7 @@ property <[FieldData]> sample_fields: [
                                     }
                                     TouchArea {
                                         clicked => {
-                                            debug("group menu clicked")
+                                            debug("clicked");
                                         }
                                     }
                                 }
@@ -271,7 +173,7 @@ property <[FieldData]> sample_fields: [
         
                             
         
-                            for field in sample_fields : Rectangle {
+                            for field in group-with-field.fields : Rectangle {
                                 VerticalBox {
                                     padding: 8px;
                                     HorizontalBox {
@@ -383,8 +285,7 @@ property <[FieldData]> sample_fields: [
                     height: parent.height;
 
                     clicked => {
-                        add-group();
-                        debug("add group");
+                        add-group(0);
                     };
                     
                 }
@@ -392,16 +293,16 @@ property <[FieldData]> sample_fields: [
             
         }
     }
-    if root.screen.show-delete-dialog: RecordDeleteDialog {
+    if root.screen-farm.show-delete-dialog: RecordDeleteDialog {
         cancelled => {
-            root.screen.show-delete-dialog = false;
-            root.screen.pending-delete-id = -1;
+            root.screen-farm.show-delete-dialog = false;
+            root.screen-farm.pending-delete-id = -1;
         }
 
         confirmed => {
-            root.delete(root.screen.pending-delete-id);
-            root.screen.pending-delete-id = -1;
-            root.screen.show-delete-dialog = false;
+            root.delete(root.screen-farm.pending-delete-id);
+            root.screen-farm.pending-delete-id = -1;
+            root.screen-farm.show-delete-dialog = false;
         }
     }
 

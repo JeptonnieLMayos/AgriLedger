@@ -3,9 +3,14 @@ pub mod models;
 
 slint::include_modules!();
 
+use std::result;
+
+use agriledger::models::farm::Farm;
 use rusqlite::types::Type::Null;
 use slint::{ModelRc, VecModel, SharedString, ToSharedString};
 use chrono::{Datelike};
+
+use crate::db::groups;
 
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -136,7 +141,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(window) = group_weak_window.upgrade() {
             match refresh_groups(&window, &group_conn, window.get_farm().id as i64) {
-                Ok(()) => window.set_group_current_page("groups".to_shared_string()),
+                Ok(()) => window.set_farm_current_page("overview-farm".to_shared_string()),
                 Err(error) => eprintln!("Could not refresh groups: {error}"),
             }
         }
@@ -179,7 +184,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(window) = field_weak_window.upgrade() {
             match refresh_fields(&window, &field_conn) {
-                Ok(()) => window.set_field_current_page("fields".to_shared_string()),
+                Ok(()) => window.set_farm_current_page("overview-farm".to_shared_string()),
                 Err(error) => eprintln!("Could not refresh farms: {error}"),
             }
         }
@@ -531,11 +536,63 @@ fn refresh_fields(
     Ok(())
 }
 
+fn refresh_groups_with_fields(
+    window: &MainWindow,
+    conn: &rusqlite::Connection,
+    farm_id: i64,
+) -> Result<(), Box<dyn std::error::Error>>
+{
+    let groups: Vec<models::group::Group> = db::groups::get_groups_by_farm(conn, farm_id)?;
+    let fields: Vec<models::field::Field> = db::fields::get_fields_by_farm(conn, farm_id)?;
+
+    window.set_has_groups(!groups.is_empty());
+    // window.set_has_fields(value);
+
+    let model: Vec<GroupWithFields> = groups
+        .into_iter()
+        .map(|group| {
+
+            let group_fields: Vec<FieldData> = fields
+            .iter()
+            .filter(|field| field.group_id == group.id)
+            .map(|field|{
+                FieldData {
+                    id: field.id as i32,
+                    farm_id: field.farm_id as i32,
+                    group_id: field.group_id as i32,
+                    name: field.name.clone().into(),
+                    area: field.area as f32,
+                    notes: field.notes.clone().into(),
+                    display_text: "".into()
+                }
+            })
+            .collect();
+
+            GroupWithFields {
+                group: GroupData { 
+                    id: group.id as i32,
+                    farm_id: group.farm_id as i32,
+                    name: group.name.clone().into(),
+                    description: group.description.clone().into(),
+                    notes: group.notes.clone().into(),
+                    display_text: "".into()
+                },
+                fields: ModelRc::new(VecModel::from(group_fields))
+            }
+        }
+    )
+    .collect();
+    
+
+    window.set_groups_with_fields(ModelRc::new(VecModel::from(model)));
+    Ok(())
+}
+
 fn refresh_crops(
     window: &MainWindow,
     conn: &rusqlite::Connection,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let crops = db::crops::get_crops(conn)?;
+    let crops:Vec<db::crops::CropRecord> = db::crops::get_crops(conn)?;
     let mut crop_names: Vec<SharedString> = vec![
     SharedString::from("Not specified")
     ];

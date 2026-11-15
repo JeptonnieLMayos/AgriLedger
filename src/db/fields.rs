@@ -34,32 +34,32 @@ pub fn count_fields(conn: &Connection) -> Result<i64> {
     )
 }
 
-pub fn list_fields(conn: &Connection) -> Result<Vec<String>> {
-    let mut stmt = conn.prepare(
-        "SELECT farm_id, group_id, name, area, notes
-         FROM fields
-         ORDER BY id",
-    )?;
+// pub fn list_fields(conn: &Connection) -> Result<Vec<String>> {
+//     let mut stmt = conn.prepare(
+//         "SELECT farm_id, group_id, name, area, notes
+//          FROM fields
+//          ORDER BY id",
+//     )?;
 
-    let rows = stmt.query_map([], |row| {
-        let farm_id: i64 = row.get(0)?;
-        let group_id: i64 = row.get(1)?;
-        let name: String = row.get(2)?;
-        let area: f64 = row.get(3)?;
-        let notes: String = row.get(4)?;
+//     let rows = stmt.query_map([], |row| {
+//         let farm_id: i64 = row.get(0)?;
+//         let group_id: i64 = row.get(1)?;
+//         let name: String = row.get(2)?;
+//         let area: f64 = row.get(3)?;
+//         let notes: String = row.get(4)?;
 
-        Ok(format!(
-            "{} \nFarm {} \nGroup {} \nArea: {}\nNotes: {}",
-            name,
-            farm_id,
-            group_id,
-            area,
-            notes
-        ))
-    })?;
+//         Ok(format!(
+//             "{} \nFarm {} \nGroup {} \nArea: {}\nNotes: {}",
+//             name,
+//             farm_id,
+//             group_id,
+//             area,
+//             notes
+//         ))
+//     })?;
 
-    rows.collect()
-}
+//     rows.collect()
+// }
 
 
 pub fn update_field(
@@ -108,6 +108,28 @@ pub fn get_fields(conn: &Connection) -> Result<Vec<Field>> {
     let mut stmt = conn.prepare(
         "SELECT id, farm_id, group_id, name, area, notes
          FROM fields
+         ORDER BY id",
+    )?;
+
+    let rows = stmt.query_map([], |row| {
+        Ok(Field {
+            id: row.get(0)?,
+            farm_id: row.get(1)?,
+            group_id: row.get(2)?,
+            name: row.get(3)?,
+            area: row.get(4)?,
+            notes: row.get(5)?
+        })
+    })?;
+
+    rows.collect()
+}
+
+pub fn get_fields_by_farm(conn: &Connection, farm_id: i64) -> Result<Vec<Field>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, farm_id, group_id, name, area, notes
+         FROM fields
+         WHERE farm_id = 1?
          ORDER BY id",
     )?;
 

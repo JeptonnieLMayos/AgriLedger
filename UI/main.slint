@@ -11,6 +11,7 @@ import { HarvestScreen } from "screens/harvest.slint";
 import { ScreenState } from "models/screen_state.slint";
 import { ActivityData } from "models/activity_data.slint";
 import { FarmScreen } from "screens/farm.slint";
+import { GroupWithFields } from "models/group_with_fields.slint";
 
 component ActiveTabIndicator inherits Rectangle {
     in property <length> _height: 3px;
@@ -46,7 +47,7 @@ export component MainWindow inherits Window {
 
 
     in-out property <bool> has-farms: false;
-    in-out property <string> farm-current-page: "overview";
+    in-out property <string> farm-current-page: "farms";
     in property <[FarmData]> farms: [];
     in property <[string]> farm-names;
     in-out property <FarmData> farm;
@@ -54,7 +55,7 @@ export component MainWindow inherits Window {
     callback delete-farm(int);
 
     in-out property <bool> has-groups: false;
-    in-out property <string> group-current-page: "groups";
+    // in-out property <string> group-current-page: "groups";
     in property <[GroupData]> groups: [];
     in property <[string]> group-names;
     in-out property <GroupData> group;
@@ -62,12 +63,15 @@ export component MainWindow inherits Window {
     callback delete-group(int);
 
     in-out property <bool> has-fields: false;
-    in-out property <string> field-current-page: "fields";
+    // in-out property <string> field-current-page: "fields";
     in property <[FieldData]> fields: [];
     in property <[string]> field-names;
     in-out property <FieldData> field;
     callback save-field(FieldData);
     callback delete-field(int);
+
+
+    in-out property <[GroupWithFields]> groups-with-fields;
 
     in-out property <bool> has-crops: false;
     in-out property <string> crop-current-page: "crops";

@@ -33,6 +33,7 @@ export component CropsScreen inherits Rectangle {
     in property <[CropData]> crops: [];
     in-out property <CropData> crop;
 
+
     in property <color> dark-color;
     in-out property <string> head-text: "Acitivities";
 
@@ -44,7 +45,7 @@ export component CropsScreen inherits Rectangle {
         label: "+";
         _font-size: 1.5rem;
         clicked => {
-            root.screen.is-editing= false;
+            root.screen.is-editing = false;
             root.screen.selected-id = -1;
             root.crop.id = 0;
             root.crop.name = "";
