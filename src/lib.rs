@@ -2,9 +2,13 @@ mod db;
 pub mod models;
 
 slint::include_modules!();
-
+use std::result;
+// use agriledger::models::farm::Farm;
 use slint::{ModelRc, VecModel, SharedString, ToSharedString};
 use chrono::{Datelike};
+
+use crate::db::groups;
+use std::rc::Rc;
 
 #[cfg(target_os = "android")]
 #[unsafe(no_mangle)]
@@ -22,7 +26,7 @@ fn android_main(app: slint::android::AndroidApp) {
     let db_path = data_dir.join("agriledger.db");
 
     let farm_conn = db::initialize::initialize(&db_path).unwrap();
-    let group_conn = db::initialize::initialize(&db_path).unwrap();
+    let group_conn = Rc::new(db::initialize::initialize(&db_path).unwrap());
     let field_conn = db::initialize::initialize(&db_path).unwrap();
     let crop_conn = db::initialize::initialize(&db_path).unwrap();
     let activity_conn = db::initialize::initialize(&db_path).unwrap();
@@ -63,6 +67,22 @@ fn android_main(app: slint::android::AndroidApp) {
     });
   
     // current date
+    
+let farm_selected_conn = Rc::clone(&group_conn);
+let farm_selected_window = window.as_weak();
+
+window.on_farm_selected(move |id| {
+    if let Some(window) = farm_selected_window.upgrade() {
+        if let Err(e) = refresh_groups_with_fields(
+            &window,
+            &farm_selected_conn,
+            id as i64,
+        ) {
+            eprintln!("on_farm_selected: Could not refresh groups: {e}");
+        }
+    }
+});
+
 
     window.on_save_farm(move |farm| {
 
@@ -105,10 +125,13 @@ fn android_main(app: slint::android::AndroidApp) {
         }
     });
 
+    let save_group_conn = Rc::clone(&group_conn);
+    let save_group_window = window.as_weak();
+
     window.on_save_group(move |group| {
         let result = if group.id > 0 {
             db::groups::update_group(
-                &group_conn,
+                &save_group_conn,
                 group.id as i64,
                 group.farm_id as i64,
                 group.name.trim(),
@@ -117,7 +140,7 @@ fn android_main(app: slint::android::AndroidApp) {
             )
         } else {
             db::groups::insert_group(
-                &group_conn,
+                &save_group_conn,
                 group.farm_id as i64,
                 group.name.trim(),
                 group.description.trim(),
@@ -139,10 +162,10 @@ fn android_main(app: slint::android::AndroidApp) {
         }
 
         if let Some(window) = group_weak_window.upgrade() {
-            if let Err(error) = refresh_groups(&window, &group_conn, window.get_farm().id as i64) {
-                eprintln!("Could not refresh groups: {error}");  // log
+            if let Err(error) = refresh_groups_with_fields(&window, &save_group_conn, window.get_farm().id as i64) {
+                eprintln!("Could not refresh set_groups_with_fields: {error}");  // log
             } else {
-                window.set_group_current_page("groups".to_shared_string());
+                window.set_farm_current_page("overview-farm".to_shared_string());
             }
         }
     });
@@ -186,7 +209,7 @@ fn android_main(app: slint::android::AndroidApp) {
             if let Err(error) = refresh_fields(&window, &field_conn) {
                 eprintln!("Could not refresh fields: {error}");  // log
             } else {
-                window.set_field_current_page("fields".to_shared_string());
+                window.set_farm_current_page("overview-farm".to_shared_string());
             }
         }
     });
@@ -540,11 +563,64 @@ fn refresh_fields(
     Ok(())
 }
 
+fn refresh_groups_with_fields(
+    window: &MainWindow,
+    conn: &rusqlite::Connection,
+    farm_id: i64
+) -> Result<(), Box<dyn std::error::Error>>
+{
+    let groups: Vec<models::group::Group> = db::groups::get_groups_by_farm(conn, farm_id)?;
+    let fields: Vec<models::field::Field> = db::fields::get_fields_by_farm(conn, farm_id)?;
+
+    window.set_has_groups(!groups.is_empty());
+    // window.set_has_fields(value);
+
+    let model: Vec<GroupWithFields> = groups
+        .into_iter()
+        .map(|group| {
+
+            let group_fields: Vec<FieldData> = fields
+            .iter()
+            .filter(|field| field.group_id == group.id)
+            .map(|field|{
+                FieldData {
+                    id: field.id as i32,
+                    farm_id: field.farm_id as i32,
+                    group_id: field.group_id as i32,
+                    name: field.name.clone().into(),
+                    area: field.area as f32,
+                    notes: field.notes.clone().into(),
+                    display_text: "".into()
+                }
+            })
+            .collect();
+
+            GroupWithFields {
+                group: GroupData { 
+                    id: group.id as i32,
+                    farm_id: group.farm_id as i32,
+                    name: group.name.into(),
+                    description: group.description.into(),
+                    notes: group.notes.into(),
+                    display_text: "".into()
+                },
+                fields: ModelRc::new(VecModel::from(group_fields))
+            }
+        }
+    )
+    .collect();
+    
+
+    window.set_groups_with_fields(ModelRc::new(VecModel::from(model)));
+    Ok(())
+}
+
+
 fn refresh_crops(
     window: &MainWindow,
     conn: &rusqlite::Connection,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let crops = db::crops::get_crops(conn)?;
+    let crops:Vec<db::crops::CropRecord> = db::crops::get_crops(conn)?;
     let mut crop_names: Vec<SharedString> = vec![
     SharedString::from("Not specified")
     ];

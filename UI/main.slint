@@ -217,7 +217,7 @@ export component MainWindow inherits Window {
                 root.delete-farm(id);
                 root.farm-current-page = "farms";
             }
-            farm-selected(id) => { root.farm-selected(id); debug(root.groups-with-fields[0].group.farm-id); }
+            farm-selected(id) => { root.farm-selected(id);}
 
             add-group => { root.farm-current-page = "form-group"; }
             save-group(group) => { root.save-group(group); }

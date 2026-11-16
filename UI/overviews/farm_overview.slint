@@ -60,7 +60,6 @@ export component FarmOverview inherits VerticalBox {
                     TouchArea {
                         clicked => {
                             record-menu-opened = !record-menu-opened;
-                            debug(groups-with-fields.length);
                         }
                     }
                 }
@@ -162,7 +161,8 @@ export component FarmOverview inherits VerticalBox {
                                     }
                                     TouchArea {
                                         clicked => {
-                                            debug("clicked");
+                                            // todo
+                                            debug("group menu clicked");
                                         }
                                     }
                                 }
@@ -203,7 +203,8 @@ export component FarmOverview inherits VerticalBox {
                                             }
                                             TouchArea {
                                                 clicked => {
-                                                    debug("field menu clicked")
+                                                    // todo
+                                                    debug("field menu clicked");
                                                 }
                                             }
                                         }
@@ -237,6 +238,7 @@ export component FarmOverview inherits VerticalBox {
         
                                     clicked => {
                                         add-field();
+                                        // todo
                                         debug("add field");
                                     };
                                     

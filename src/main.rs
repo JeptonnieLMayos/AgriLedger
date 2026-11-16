@@ -564,7 +564,6 @@ fn refresh_groups_with_fields(
 {
     let groups: Vec<models::group::Group> = db::groups::get_groups_by_farm(conn, farm_id)?;
     let fields: Vec<models::field::Field> = db::fields::get_fields_by_farm(conn, farm_id)?;
-    println!("here");
 
 
     window.set_has_groups(!groups.is_empty());
