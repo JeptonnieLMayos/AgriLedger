@@ -172,32 +172,72 @@ export component FarmScreen inherits Rectangle {
                 current-page = "farms";
                 root.screen-farm.selected-id = -1;
             }
-            edit(farm) => {
+            edit-farm(farm) => {
+                root.farm = farm;
                 root.screen-farm.is-editing = true;
                 current-page = "form-farm";
                 root.head-text = "Edit Farm";
             }
-            delete(id) => {
+            delete-farm(id) => {
                 root.delete-farm(id);
                 root.screen-farm.selected-id = -1;
             }
+
+            edit-group(group) => {
+                root.group = group;
+                root.screen-farm.is-editing = true;
+                current-page = "form-group";
+                root.head-text = "Edit Group";
+            }
+            delete-group(id) => {
+                root.delete-group(id);
+                root.screen-farm.selected-id = -1;
+            }
             farm <=> root.farm;
-            screen-farm <=> root.screen-farm;
+            group <=> root.group;
+            field <=> root.field;
+            screen <=> root.screen-farm;
             groups-with-fields: root.groups_with_fields;
             dark-color: root.dark-color;
             
 
-            add-group() => {
+            add-group => {
                 root.screen-group.selected-id = -1;
                 root.screen-group.is-editing = false;
                 root.group.id = -1;
-                root.group.farm-id = root.screen-farm.selected-id;
+                root.group.farm-id = root.farm.id;
                 root.group.name = "";
                 root.group.description = "";
                 root.group.notes = "";
                 root.group.display-text = "";
                 root.current-page = "form-group";
                 root.head-text = "Add Group";
+            }
+
+            edit-field(field) => {
+                root.field = field;
+                root.screen-farm.is-editing = true;
+                current-page = "form-field";
+                root.head-text = "Edit Field";
+            }
+
+            delete-field(id) => {
+                root.delete-field(id);
+                root.screen-field.selected-id = -1;
+            }
+
+            add-field => {
+                root.screen-field.selected-id = -1;
+                root.screen-field.is-editing = false;
+                root.field.id = -1;
+                root.field.farm-id = root.farm.id;
+                root.field.group-id = group.id;
+                root.field.name = "";
+                root.field.area = 1.0;
+                root.field.notes = "";
+                root.field.display-text = "";
+                root.current-page = "form-field";
+                root.head-text = "Add Field";
             }
         }
 
@@ -214,7 +254,6 @@ export component FarmScreen inherits Rectangle {
             }
         }
 
-
         if current-page == "form-group": GroupForm {
             current-date: root.current-date;
             editing: root.screen-group.is-editing;
@@ -222,8 +261,20 @@ export component FarmScreen inherits Rectangle {
             cancel => {
                 root.current-page = "overview-farm";
             }
-            save-group() => {
+            save-group => {
                 root.save-group(root.group);
+            }
+        }
+
+        if current-page == "form-field": FieldForm {
+            current-date: root.current-date;
+            editing: root.screen-field.is-editing;
+            field <=> root.field;
+            cancel => {
+                root.current-page = "overview-farm";
+            }
+            save-field => {
+                root.save-field(root.field);
             }
         }
     }

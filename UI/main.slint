@@ -221,6 +221,10 @@ export component MainWindow inherits Window {
 
             add-group => { root.farm-current-page = "form-group"; }
             save-group(group) => { root.save-group(group); }
+            delete-group(id) => { root.delete-group(id); }
+
+            save-field(field) => { root.save-field(field); }
+            delete-field(id) => { root.delete-field(id); }
         }
 
         if root.current-screen == "crops": CropsScreen {

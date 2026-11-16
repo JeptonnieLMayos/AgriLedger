@@ -206,7 +206,7 @@ window.on_farm_selected(move |id| {
         }
 
         if let Some(window) = field_weak_window.upgrade() {
-            if let Err(error) = refresh_fields(&window, &field_conn) {
+            if let Err(error) = refresh_groups_with_fields(&window, &field_conn, window.get_farm().id as i64) {
                 eprintln!("Could not refresh fields: {error}");  // log
             } else {
                 window.set_farm_current_page("overview-farm".to_shared_string());
@@ -360,7 +360,7 @@ window.on_farm_selected(move |id| {
         match db::groups::delete_group(&delete_group_conn, id as i64) {
             Ok(true) => {
                 if let Some(window) = delete_group_weak_window.upgrade() {
-                    if let Err(error) = refresh_groups(&window, &delete_group_conn,window.get_farm().id as i64) {
+                    if let Err(error) = refresh_groups_with_fields(&window, &delete_group_conn,window.get_farm().id as i64) {
                         eprintln!("Could not refresh groups: {error}");  // log
                     }
                 }
@@ -377,7 +377,7 @@ window.on_farm_selected(move |id| {
         match db::fields::delete_field(&delete_field_conn, id as i64) {
             Ok(true) => {
                 if let Some(window) = delete_field_weak_window.upgrade() {
-                    if let Err(error) = refresh_fields(&window, &delete_field_conn) {
+                    if let Err(error) = refresh_groups_with_fields(&window, &delete_field_conn, window.get_farm().id as i64) {
                         eprintln!("Could not refresh fields: {error}");  // log
                     }
                 }
