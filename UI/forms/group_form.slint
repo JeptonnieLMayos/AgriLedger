@@ -7,9 +7,7 @@ import { GroupData } from "../models/group_data.slint";
 import { UITextEdit } from "../components/ui_text_edit.slint";
 
 export component GroupForm inherits VerticalBox {
-    callback save-group(
-        GroupData
-    );
+    callback save-group();
     callback cancel();
     
     spacing: 10px;
@@ -63,9 +61,7 @@ export component GroupForm inherits VerticalBox {
             if root.group.name == "" {
                 return;
             }
-            root.save-group(
-                group
-            );
+            root.save-group();
         }
     }
 

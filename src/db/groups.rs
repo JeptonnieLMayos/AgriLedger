@@ -74,7 +74,7 @@ pub fn get_groups_by_farm(conn: &Connection, farm_id: i64) -> Result<Vec<Group>>
          ORDER BY id",
     )?;
 
-    let rows = stmt.query_map([], |row| {
+    let rows = stmt.query_map([farm_id], |row| {
         Ok(Group {
             id: row.get(0)?,
             farm_id: row.get(1)?,

@@ -129,11 +129,11 @@ pub fn get_fields_by_farm(conn: &Connection, farm_id: i64) -> Result<Vec<Field>>
     let mut stmt = conn.prepare(
         "SELECT id, farm_id, group_id, name, area, notes
          FROM fields
-         WHERE farm_id = 1?
+         WHERE farm_id = ?1
          ORDER BY id",
     )?;
 
-    let rows = stmt.query_map([], |row| {
+    let rows = stmt.query_map([farm_id], |row| {
         Ok(Field {
             id: row.get(0)?,
             farm_id: row.get(1)?,

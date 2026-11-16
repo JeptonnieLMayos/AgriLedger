@@ -8,7 +8,6 @@ import { FieldData } from "models/field_data.slint";
 import { CropData } from "models/crop_data.slint";
 import { ActivitiesScreen } from "screens/activities.slint";
 import { HarvestScreen } from "screens/harvest.slint";
-import { ScreenState } from "models/screen_state.slint";
 import { ActivityData } from "models/activity_data.slint";
 import { FarmScreen } from "screens/farm.slint";
 import { GroupWithFields } from "models/group_with_fields.slint";
@@ -55,7 +54,7 @@ export component MainWindow inherits Window {
     callback delete-farm(int);
 
     in-out property <bool> has-groups: false;
-    // in-out property <string> group-current-page: "groups";
+    in-out property <string> group-current-page: "groups";
     in property <[GroupData]> groups: [];
     in property <[string]> group-names;
     in-out property <GroupData> group;
@@ -63,7 +62,7 @@ export component MainWindow inherits Window {
     callback delete-group(int);
 
     in-out property <bool> has-fields: false;
-    // in-out property <string> field-current-page: "fields";
+    in-out property <string> field-current-page: "fields";
     in property <[FieldData]> fields: [];
     in property <[string]> field-names;
     in-out property <FieldData> field;
@@ -72,6 +71,7 @@ export component MainWindow inherits Window {
 
 
     in-out property <[GroupWithFields]> groups-with-fields;
+    callback farm-selected(int);
 
     in-out property <bool> has-crops: false;
     in-out property <string> crop-current-page: "crops";
@@ -200,12 +200,14 @@ export component MainWindow inherits Window {
             dark-color: root.dark-color;
             current-date: root.current-date;
             current-screen <=> root.current-screen;
+            groups_with_fields: root.groups-with-fields;
 
             farm-has-items: root.has-farms;
             current-page <=> root.farm-current-page;
             farms <=> root.farms;
+            farm <=> root.farm;
 
-            add-farm => { root.farm-current-page = "form"; }
+            add-farm => { root.farm-current-page = "form-farm"; }
             save-farm(farm) => {root.save-farm(farm);}
             edit-farm(farm) => {
                 root.farm = farm;
@@ -215,6 +217,10 @@ export component MainWindow inherits Window {
                 root.delete-farm(id);
                 root.farm-current-page = "farms";
             }
+            farm-selected(id) => { root.farm-selected(id); debug(root.groups-with-fields[0].group.farm-id); }
+
+            add-group => { root.farm-current-page = "form-group"; }
+            save-group(group) => { root.save-group(group); }
         }
 
         if root.current-screen == "crops": CropsScreen {

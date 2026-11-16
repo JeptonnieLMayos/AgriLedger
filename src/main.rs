@@ -11,6 +11,7 @@ use slint::{ModelRc, VecModel, SharedString, ToSharedString};
 use chrono::{Datelike};
 
 use crate::db::groups;
+use std::rc::Rc;
 
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -22,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let db_path = data_dir.join("agriledger.db");
     let farm_conn = db::initialize::initialize(&db_path)?;
-    let group_conn = db::initialize::initialize(&db_path)?;
+    let group_conn = Rc::new(db::initialize::initialize(&db_path)?);
     let field_conn = db::initialize::initialize(&db_path)?;
     let crop_conn = db::initialize::initialize(&db_path)?;
     let activity_conn = db::initialize::initialize(&db_path)?;
@@ -66,6 +67,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         day: now.day() as i32,
     });
     // current date
+    
+let farm_selected_conn = Rc::clone(&group_conn);
+let farm_selected_window = window.as_weak();
+
+window.on_farm_selected(move |id| {
+    if let Some(window) = farm_selected_window.upgrade() {
+        if let Err(e) = refresh_groups_with_fields(
+            &window,
+            &farm_selected_conn,
+            id as i64,
+        ) {
+            eprintln!("on_farm_selected: Could not refresh groups: {e}");
+        }
+    }
+});
+
 
     window.on_save_farm(move |farm| {
         let result = if farm.id > 0 {
@@ -106,10 +123,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
+    let save_group_conn = Rc::clone(&group_conn);
+    let save_group_window = window.as_weak();
+
     window.on_save_group(move |group| {
         let result = if group.id > 0 {
             db::groups::update_group(
-                &group_conn,
+                &save_group_conn,
                 group.id as i64,
                 group.farm_id as i64,
                 group.name.trim(),
@@ -118,7 +138,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
         } else {
             db::groups::insert_group(
-                &group_conn,
+                &save_group_conn,
                 group.farm_id as i64,
                 group.name.trim(),
                 group.description.trim(),
@@ -140,9 +160,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         if let Some(window) = group_weak_window.upgrade() {
-            match refresh_groups(&window, &group_conn, window.get_farm().id as i64) {
+            match refresh_groups_with_fields(&window, &save_group_conn, window.get_farm().id as i64) {
                 Ok(()) => window.set_farm_current_page("overview-farm".to_shared_string()),
-                Err(error) => eprintln!("Could not refresh groups: {error}"),
+                Err(error) => eprintln!("Could not refresh set_groups_with_fields: {error}"),
             }
         }
     });
@@ -539,11 +559,13 @@ fn refresh_fields(
 fn refresh_groups_with_fields(
     window: &MainWindow,
     conn: &rusqlite::Connection,
-    farm_id: i64,
+    farm_id: i64
 ) -> Result<(), Box<dyn std::error::Error>>
 {
     let groups: Vec<models::group::Group> = db::groups::get_groups_by_farm(conn, farm_id)?;
     let fields: Vec<models::field::Field> = db::fields::get_fields_by_farm(conn, farm_id)?;
+    println!("here");
+
 
     window.set_has_groups(!groups.is_empty());
     // window.set_has_fields(value);
@@ -572,9 +594,9 @@ fn refresh_groups_with_fields(
                 group: GroupData { 
                     id: group.id as i32,
                     farm_id: group.farm_id as i32,
-                    name: group.name.clone().into(),
-                    description: group.description.clone().into(),
-                    notes: group.notes.clone().into(),
+                    name: group.name.into(),
+                    description: group.description.into(),
+                    notes: group.notes.into(),
                     display_text: "".into()
                 },
                 fields: ModelRc::new(VecModel::from(group_fields))

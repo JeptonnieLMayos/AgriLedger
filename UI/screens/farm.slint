@@ -74,6 +74,7 @@ export component FarmScreen inherits Rectangle {
     in-out property <FieldData> field;
 
     in property <[GroupWithFields]> groups_with_fields;
+    callback farm-selected(int);
     
     in property <color> dark-color;
     in-out property <int> name;
@@ -158,6 +159,8 @@ export component FarmScreen inherits Rectangle {
                         root.farm = farm;
                         root.current-page = "overview-farm";
                         root.head-text = "Farm Overview";
+                        farm-selected(farm.id);
+                        
                     }
                 }
             }
@@ -182,12 +185,13 @@ export component FarmScreen inherits Rectangle {
             screen-farm <=> root.screen-farm;
             groups-with-fields: root.groups_with_fields;
             dark-color: root.dark-color;
+            
 
-            add-group(farm_id) => {
+            add-group() => {
                 root.screen-group.selected-id = -1;
                 root.screen-group.is-editing = false;
-                root.group.id = 0;
-                root.group.farm-id = farm-id;
+                root.group.id = -1;
+                root.group.farm-id = root.screen-farm.selected-id;
                 root.group.name = "";
                 root.group.description = "";
                 root.group.notes = "";
@@ -214,12 +218,12 @@ export component FarmScreen inherits Rectangle {
         if current-page == "form-group": GroupForm {
             current-date: root.current-date;
             editing: root.screen-group.is-editing;
-            group: root.group;
+            group <=> root.group;
             cancel => {
                 root.current-page = "overview-farm";
             }
-            save-group(group) => {
-                root.save-group(group);
+            save-group() => {
+                root.save-group(root.group);
             }
         }
     }

@@ -17,7 +17,7 @@ export component FarmOverview inherits VerticalBox {
     callback go-back();
     callback edit(FarmData);
     callback delete(int);
-    callback add-group(int);
+    callback add-group();
     callback add-field();
 
     in-out property <FarmData> farm;
@@ -60,6 +60,7 @@ export component FarmOverview inherits VerticalBox {
                     TouchArea {
                         clicked => {
                             record-menu-opened = !record-menu-opened;
+                            debug(groups-with-fields.length);
                         }
                     }
                 }
@@ -285,7 +286,7 @@ export component FarmOverview inherits VerticalBox {
                     height: parent.height;
 
                     clicked => {
-                        add-group(0);
+                        add-group();
                     };
                     
                 }
