@@ -6,7 +6,7 @@ slint::include_modules!();
 use std::result;
 
 use agriledger::models::farm::Farm;
-use rusqlite::types::Type::Null;
+use rusqlite::{StatementStatus, types::Type::Null};
 use slint::{ModelRc, VecModel, SharedString, ToSharedString};
 use chrono::{Datelike};
 
@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     refresh_farms(&window, &farm_conn)?;
     // refresh_groups(&window, &group_conn)?;
     // refresh_fields(&window, &field_conn)?;
-    refresh_crops(&window, &crop_conn)?;
+    // refresh_crops(&window, &crop_conn)?;
     refresh_activities(&window, &activity_conn)?;
     
     let farm_weak_window = window.as_weak();
@@ -116,8 +116,14 @@ window.on_farm_selected(move |id| {
         }
 
         if let Some(window) = farm_weak_window.upgrade() {
+            let goto: &str = if window.get_screen_farm().is_editing {
+                "overview-farm"
+            } else {
+                "farms"  
+            };
+            
             match refresh_farms(&window, &farm_conn) {
-                Ok(()) => window.set_farm_current_page("farms".to_shared_string()),
+                Ok(()) => window.set_farm_current_page(goto.to_shared_string()),
                 Err(error) => eprintln!("Could not refresh farms: {error}"),
             }
         }
@@ -219,13 +225,19 @@ window.on_farm_selected(move |id| {
             }
         };
 
+        if crop.name.trim().is_empty() {
+            eprintln!("crop name is required.");  // log
+            return;
+        }
+
         let result = if crop.id > 0 {
             db::crops::update_crop(
                 &crop_conn,
                 crop.id as i64,
                 crop.name.trim(),
                 area,
-                -1,
+                crop.farm_id as i64,
+                crop.field_id as i64,
                 crop.planting_date.as_str(),
                 crop.status.as_str(),
             )
@@ -234,7 +246,8 @@ window.on_farm_selected(move |id| {
                 &crop_conn,
                 crop.name.trim(),
                 area,
-                -1,
+                crop.farm_id as i64,
+                crop.field_id as i64,
                 crop.planting_date.as_str(),
                 crop.status.as_str(),
             )
@@ -254,7 +267,7 @@ window.on_farm_selected(move |id| {
         }
 
         if let Some(window) = crop_weak_window.upgrade() {
-            match refresh_crops(&window, &crop_conn) {
+            match refresh_crops(&window, &crop_conn, crop.farm_id as i64, crop.field_id as i64) {
                 Ok(()) => window.set_crop_current_page("crops".to_shared_string()),
                 Err(error) => eprintln!("Could not refresh crops: {error}"),
             }
@@ -385,7 +398,7 @@ window.on_farm_selected(move |id| {
         match db::crops::delete_crop(&delete_crop_conn, id as i64) {
             Ok(true) => {
                 if let Some(window) = delete_crop_weak_window.upgrade() {
-                    if let Err(error) = refresh_crops(&window, &delete_crop_conn) {
+                    if let Err(error) = refresh_crops(&window, &delete_crop_conn, window.get_farm().id as i64, window.get_field().id as i64) {
                         eprintln!("Could not refresh crops: {error}");  // log
                     }
                 }
@@ -611,45 +624,29 @@ fn refresh_groups_with_fields(
 fn refresh_crops(
     window: &MainWindow,
     conn: &rusqlite::Connection,
+    farm_id: i64,
+    field_id: i64
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let crops:Vec<db::crops::CropRecord> = db::crops::get_crops(conn)?;
-    let mut crop_names: Vec<SharedString> = vec![
-    SharedString::from("Not specified")
-    ];
-    crop_names.extend(
-    crops.iter()
-        .map(|crop| SharedString::from(crop.name.as_str()))
-        .filter(|name| !name.is_empty())
-    );
+    let crops:Vec<models::crop::Crop> = db::crops::get_crops(conn, farm_id)?;
 
     window.set_has_crops(!crops.is_empty());
 
     let model: Vec<CropData> = crops
         .into_iter()
         .map(|crop| {
-            let display_text = format!(
-                "{}\nArea: {} m²\nField: {}\nPlanted: {}\nStatus: {}",
-                crop.name,
-                crop.area,
-                if crop.field_id == -1 { "Not specified".to_string() } else { crop.field_id.to_string() },
-                if crop.planting_date.is_empty() { "Not specified" } else { &crop.planting_date },
-                crop.status
-            );
-
             CropData {
                 id: crop.id as i32,
                 name: crop.name.into(),
                 area: crop.area.to_string().into(),
-                field: crop.field_id.to_string().into(),
+                farm_id: crop.farm_id as i32,
+                field_id: crop.field_id as i32,
                 planting_date: crop.planting_date.into(),
-                status: crop.status.into(),
-                display_text: display_text.into(),
+                status: crop.status.into()
             }
         })
         .collect();
 
     window.set_crops(ModelRc::new(VecModel::from(model)));
-    window.set_crop_names(ModelRc::new(VecModel::from(crop_names)));
 
     Ok(())
 }

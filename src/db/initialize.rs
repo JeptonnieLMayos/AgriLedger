@@ -36,6 +36,7 @@ pub fn initialize(path: &Path) -> Result<Connection> {
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL ,
             area REAL,
+            farm_id INTEGER,
             field_id INTEGER,
             planting_date TEXT NOT NULL DEFAULT '',
             status TEXT NOT NULL DEFAULT 'Fallow',

@@ -50,7 +50,8 @@ export component CropsScreen inherits Rectangle {
             root.crop.id = 0;
             root.crop.name = "";
             root.crop.area = 0;
-            root.crop.field = "-1";
+            root.crop.farm-id = 1;
+            root.crop.field_id = 1;
             root.crop.planting-date = 
                 "\{root.current-date.year
                 }-\{root.current-date.month
@@ -127,7 +128,7 @@ export component CropsScreen inherits Rectangle {
                 }
 
                 for crop in root.crops: RecordCard {
-                    display-text: crop.display-text;
+                    display-text: crop.name;
 
                     opened => {
                         root.screen.selected-id = crop.id;

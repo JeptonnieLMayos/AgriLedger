@@ -11,6 +11,7 @@ import { HarvestScreen } from "screens/harvest.slint";
 import { ActivityData } from "models/activity_data.slint";
 import { FarmScreen } from "screens/farm.slint";
 import { GroupWithFields } from "models/group_with_fields.slint";
+import { ScreenState } from "models/screen_state.slint";
 
 component ActiveTabIndicator inherits Rectangle {
     in property <length> _height: 3px;
@@ -47,6 +48,7 @@ export component MainWindow inherits Window {
 
     in-out property <bool> has-farms: false;
     in-out property <string> farm-current-page: "farms";
+    in-out property <ScreenState> screen-farm;
     in property <[FarmData]> farms: [];
     in property <[string]> farm-names;
     in-out property <FarmData> farm;
@@ -207,11 +209,13 @@ export component MainWindow inherits Window {
             farms <=> root.farms;
             farm <=> root.farm;
 
+            screen-farm <=> root.screen-farm;
+
             add-farm => { root.farm-current-page = "form-farm"; }
             save-farm(farm) => {root.save-farm(farm);}
             edit-farm(farm) => {
                 root.farm = farm;
-                root.farm-current-page = "form";
+                // root.farm-current-page = "form-farm";
             }
             delete-farm(id) => {
                 root.delete-farm(id);

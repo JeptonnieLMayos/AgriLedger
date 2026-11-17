@@ -20,6 +20,9 @@ slint-build = "=1.16.0"
 
 [package.metadata.android]
 build_targets = ["aarch64-linux-android"]
+res = "android-res"
+icon = "@mipmap/ic_launcher"
+apk_label = "AgriLedger"
 
 [package.metadata.android.application]
 has_code = false
