@@ -2,7 +2,6 @@ import { VerticalBox, Button, StandardButton, Date, HorizontalBox, ComboBox } fr
 import { UiButton } from "../components/ui_button.slint";
 import { ScreenState } from "../models/screen_state.slint";
 import { UiButtonImg } from "../components/ui_button_img.slint";
-import { RecordDeleteDialog } from "../components/record_delete_dialog.slint";
 
 import { FarmData } from "../models/farm_data.slint";
 import { FarmForm } from "../forms/farm_form.slint";
@@ -65,12 +64,8 @@ export component FarmScreen inherits Rectangle {
     in property <[FarmData]> farms: [];
     in-out property <FarmData> farm;
     
-    // in-out property <bool> group-has-items: false;
-    // in property <[GroupData]> groups: [];
     in-out property <GroupData> group;
       
-    // in-out property <bool> field-has-items: false;
-    // in property <[FieldData]> fields: [];
     in-out property <FieldData> field;
 
     in property <[GroupWithFields]> groups_with_fields;
@@ -113,10 +108,12 @@ export component FarmScreen inherits Rectangle {
                     img-width: 32px;
                     colorize: dark-color;
                     clicked => {
+                        if current-page == "overview-farm" {screen-farm.selected-id = -1;}
                         current-page =  current-page == "overview-farm" ? "farms" :
                                         current-page == "form-farm" && screen-farm.is-editing ? "overview-farm" :
                                         current-page == "form-farm" && !screen-farm.is-editing ? "farms" :
                                         "farms";
+                        
                     }
                 }
             } 

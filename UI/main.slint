@@ -82,6 +82,7 @@ export component MainWindow inherits Window {
     in-out property <CropData> crop;
     callback save-crop(CropData);
     callback delete-crop(int);
+    callback refresh-crops(int, int);
     
     in-out property <bool> has-activities: false;
     in-out property <string> activities-current-page: "activities";
@@ -104,7 +105,6 @@ export component MainWindow inherits Window {
                 
                 padding: 0px;
                 Rectangle {
-                    background: transparent;
                     height: 32px;
                 }
     
@@ -168,7 +168,6 @@ export component MainWindow inherits Window {
                     }
         
                     Rectangle {
-                        background: transparent;
                         horizontal-stretch: 1;
                         Text {
                             font-weight: 600;
@@ -215,7 +214,6 @@ export component MainWindow inherits Window {
             save-farm(farm) => {root.save-farm(farm);}
             edit-farm(farm) => {
                 root.farm = farm;
-                // root.farm-current-page = "form-farm";
             }
             delete-farm(id) => {
                 root.delete-farm(id);
@@ -232,6 +230,7 @@ export component MainWindow inherits Window {
         }
 
         if root.current-screen == "crops": CropsScreen {
+            farm_id: root.screen-farm.selected-id;
             dark-color: root.dark-color;
             has-items: root.has-crops;
             current-page <=> root.crop-current-page;
@@ -331,6 +330,9 @@ Rectangle {
                     height: 64px;
                     img: @image-url("../Icons/Sprout/Sprout.png");
                     clicked => {
+                        if screen-farm.selected-id > -1 {
+                            refresh-crops(screen-farm.selected-id, -1);
+                        }
                         root.current-screen = "crops";
                     }
                 }

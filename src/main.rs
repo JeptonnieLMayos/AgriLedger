@@ -3,16 +3,14 @@ pub mod models;
 
 slint::include_modules!();
 
-use std::result;
-
 use agriledger::models::farm::Farm;
+use chrono::Datelike;
 use rusqlite::{StatementStatus, types::Type::Null};
-use slint::{ModelRc, VecModel, SharedString, ToSharedString};
-use chrono::{Datelike};
+use slint::{ModelRc, SharedString, ToSharedString, VecModel, Window};
+use std::result;
 
 use crate::db::groups;
 use std::rc::Rc;
-
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let data_dir = dirs::data_local_dir()
@@ -28,9 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let crop_conn = db::initialize::initialize(&db_path)?;
     let activity_conn = db::initialize::initialize(&db_path)?;
 
-    
-
-
+    let refresh_crops_conn = db::initialize::initialize(&db_path)?;
 
     let window = MainWindow::new()?;
 
@@ -39,12 +35,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // refresh_fields(&window, &field_conn)?;
     // refresh_crops(&window, &crop_conn)?;
     refresh_activities(&window, &activity_conn)?;
-    
+
     let farm_weak_window = window.as_weak();
     let group_weak_window = window.as_weak();
     let field_weak_window = window.as_weak();
     let crop_weak_window = window.as_weak();
     let activity_weak_window = window.as_weak();
+
+    let refresh_crops_weak_window = window.as_weak();
 
     let delete_farm_conn = db::initialize::initialize(&db_path)?;
     let delete_group_conn = db::initialize::initialize(&db_path)?;
@@ -67,22 +65,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         day: now.day() as i32,
     });
     // current date
-    
-let farm_selected_conn = Rc::clone(&group_conn);
-let farm_selected_window = window.as_weak();
 
-window.on_farm_selected(move |id| {
-    if let Some(window) = farm_selected_window.upgrade() {
-        if let Err(e) = refresh_groups_with_fields(
-            &window,
-            &farm_selected_conn,
-            id as i64,
-        ) {
-            eprintln!("on_farm_selected: Could not refresh groups: {e}");
+    let farm_selected_conn = Rc::clone(&group_conn);
+    let farm_selected_window = window.as_weak();
+
+    window.on_farm_selected(move |id| {
+        if let Some(window) = farm_selected_window.upgrade() {
+            if let Err(e) = refresh_groups_with_fields(&window, &farm_selected_conn, id as i64) {
+                eprintln!("on_farm_selected: Could not refresh groups: {e}");
+            }
         }
-    }
-});
-
+    });
 
     window.on_save_farm(move |farm| {
         let result = if farm.id > 0 {
@@ -106,11 +99,11 @@ window.on_farm_selected(move |id| {
         match result {
             Ok(true) => {}
             Ok(false) => {
-                eprintln!("No farm was updated. The selected farm may no longer exist.");  // log
+                eprintln!("No farm was updated. The selected farm may no longer exist."); // log
                 return;
             }
             Err(error) => {
-                eprintln!("Could not save farm: {error}");  // log
+                eprintln!("Could not save farm: {error}"); // log
                 return;
             }
         }
@@ -119,9 +112,9 @@ window.on_farm_selected(move |id| {
             let goto: &str = if window.get_screen_farm().is_editing {
                 "overview-farm"
             } else {
-                "farms"  
+                "farms"
             };
-            
+
             match refresh_farms(&window, &farm_conn) {
                 Ok(()) => window.set_farm_current_page(goto.to_shared_string()),
                 Err(error) => eprintln!("Could not refresh farms: {error}"),
@@ -130,7 +123,6 @@ window.on_farm_selected(move |id| {
     });
 
     let save_group_conn = Rc::clone(&group_conn);
-    let save_group_window = window.as_weak();
 
     window.on_save_group(move |group| {
         let result = if group.id > 0 {
@@ -156,17 +148,18 @@ window.on_farm_selected(move |id| {
         match result {
             Ok(true) => {}
             Ok(false) => {
-                eprintln!("No group was updated. The selected group may no longer exist.");  // log
+                eprintln!("No group was updated. The selected group may no longer exist."); // log
                 return;
             }
             Err(error) => {
-                eprintln!("Could not save group: {error}");  // log
+                eprintln!("Could not save group: {error}"); // log
                 return;
             }
         }
 
         if let Some(window) = group_weak_window.upgrade() {
-            match refresh_groups_with_fields(&window, &save_group_conn, window.get_farm().id as i64) {
+            match refresh_groups_with_fields(&window, &save_group_conn, window.get_farm().id as i64)
+            {
                 Ok(()) => window.set_farm_current_page("overview-farm".to_shared_string()),
                 Err(error) => eprintln!("Could not refresh set_groups_with_fields: {error}"),
             }
@@ -199,11 +192,11 @@ window.on_farm_selected(move |id| {
         match result {
             Ok(true) => {}
             Ok(false) => {
-                eprintln!("No field was updated. The selected field may no longer exist.");  // log
+                eprintln!("No field was updated. The selected field may no longer exist."); // log
                 return;
             }
             Err(error) => {
-                eprintln!("Could not save field: {error}");  // log
+                eprintln!("Could not save field: {error}"); // log
                 return;
             }
         }
@@ -220,13 +213,13 @@ window.on_farm_selected(move |id| {
         let area = match crop.area.trim().parse::<f64>() {
             Ok(value) if value.is_finite() => value,
             _ => {
-                eprintln!("Crop area must be a valid number greater than zero.");  // log
+                eprintln!("Crop area must be a valid number greater than zero."); // log
                 return;
             }
         };
 
         if crop.name.trim().is_empty() {
-            eprintln!("crop name is required.");  // log
+            eprintln!("crop name is required."); // log
             return;
         }
 
@@ -257,25 +250,31 @@ window.on_farm_selected(move |id| {
         match result {
             Ok(true) => {}
             Ok(false) => {
-                eprintln!("No crop was updated. The selected crop may no longer exist.");  // log
+                eprintln!("No crop was updated. The selected crop may no longer exist."); // log
                 return;
             }
             Err(error) => {
-                eprintln!("Could not save crop: {error}");  // log
+                eprintln!("Could not save crop: {error}"); // log
                 return;
             }
         }
 
         if let Some(window) = crop_weak_window.upgrade() {
-            match refresh_crops(&window, &crop_conn, crop.farm_id as i64, crop.field_id as i64) {
-                Ok(()) => window.set_crop_current_page("crops".to_shared_string()),
+            match refresh_crops(
+                &window,
+                &crop_conn,
+                crop.farm_id as i64,
+                crop.field_id as i64,
+            ) {
+                Ok(()) 
+                //  => window.set_crop_current_page("crops".to_shared_string()),
+                => {}
                 Err(error) => eprintln!("Could not refresh crops: {error}"),
             }
         }
     });
 
     window.on_save_activity(move |activity| {
-
         let result = if activity.id > 0 {
             db::activities::update_activities(
                 &activity_conn,
@@ -294,7 +293,7 @@ window.on_farm_selected(move |id| {
                 activity.priority.as_str(),
                 activity.notes.as_str(),
                 activity.created_at.as_str(),
-                activity.updated_at.as_str()
+                activity.updated_at.as_str(),
             )
         } else {
             db::activities::insert_activity(
@@ -313,7 +312,7 @@ window.on_farm_selected(move |id| {
                 activity.priority.as_str(),
                 activity.notes.as_str(),
                 activity.created_at.as_str(),
-                activity.updated_at.as_str()
+                activity.updated_at.as_str(),
             )
             .map(|_| true)
         };
@@ -321,11 +320,11 @@ window.on_farm_selected(move |id| {
         match result {
             Ok(true) => {}
             Ok(false) => {
-                eprintln!("No activity was updated. The selected activity may no longer exist.");  // log
+                eprintln!("No activity was updated. The selected activity may no longer exist."); // log
                 return;
             }
             Err(error) => {
-                eprintln!("Could not save activity: {error}");  // log
+                eprintln!("Could not save activity: {error}"); // log
                 return;
             }
         }
@@ -338,14 +337,32 @@ window.on_farm_selected(move |id| {
         }
     });
 
+    window.on_refresh_crops(move |farm_id, field_id| {
+        if farm_id < 0 {
+            if let Some(window) = refresh_crops_weak_window.upgrade() {
+                window.set_crops(ModelRc::new(VecModel::from(Vec::<CropData>::new())));
+            }
+        }
 
+        if let Some(window) = refresh_crops_weak_window.upgrade() {
+            match refresh_crops(
+                &window,
+                &refresh_crops_conn,
+                farm_id as i64,
+                field_id as i64,
+            ) {
+                Ok(()) => window.set_crop_current_page("crops".to_shared_string()),
+                Err(error) => eprintln!("Could not refresh crops: {error}"),
+            }
+        }
+    });
 
     window.on_delete_farm(move |id| {
         match db::farms::delete_farm(&delete_farm_conn, id as i64) {
             Ok(true) => {
                 if let Some(window) = delete_farm_weak_window.upgrade() {
                     if let Err(error) = refresh_farms(&window, &delete_farm_conn) {
-                        eprintln!("Could not refresh farms: {error}");  // log
+                        eprintln!("Could not refresh farms: {error}"); // log
                     }
                 }
             }
@@ -362,8 +379,12 @@ window.on_farm_selected(move |id| {
         match db::groups::delete_group(&delete_group_conn, id as i64) {
             Ok(true) => {
                 if let Some(window) = delete_group_weak_window.upgrade() {
-                    if let Err(error) = refresh_groups_with_fields(&window, &delete_group_conn,window.get_farm().id as i64) {
-                        eprintln!("Could not refresh groups: {error}");  // log
+                    if let Err(error) = refresh_groups_with_fields(
+                        &window,
+                        &delete_group_conn,
+                        window.get_farm().id as i64,
+                    ) {
+                        eprintln!("Could not refresh groups: {error}"); // log
                     }
                 }
             }
@@ -380,8 +401,12 @@ window.on_farm_selected(move |id| {
         match db::fields::delete_field(&delete_field_conn, id as i64) {
             Ok(true) => {
                 if let Some(window) = delete_field_weak_window.upgrade() {
-                    if let Err(error) = refresh_groups_with_fields(&window, &delete_field_conn, window.get_farm().id as i64) {
-                        eprintln!("Could not refresh fields: {error}");  // log
+                    if let Err(error) = refresh_groups_with_fields(
+                        &window,
+                        &delete_field_conn,
+                        window.get_farm().id as i64,
+                    ) {
+                        eprintln!("Could not refresh fields: {error}"); // log
                     }
                 }
             }
@@ -398,8 +423,13 @@ window.on_farm_selected(move |id| {
         match db::crops::delete_crop(&delete_crop_conn, id as i64) {
             Ok(true) => {
                 if let Some(window) = delete_crop_weak_window.upgrade() {
-                    if let Err(error) = refresh_crops(&window, &delete_crop_conn, window.get_farm().id as i64, window.get_field().id as i64) {
-                        eprintln!("Could not refresh crops: {error}");  // log
+                    if let Err(error) = refresh_crops(
+                        &window,
+                        &delete_crop_conn,
+                        window.get_farm().id as i64,
+                        window.get_field().id as i64,
+                    ) {
+                        eprintln!("Could not refresh crops: {error}"); // log
                     }
                 }
             }
@@ -417,7 +447,7 @@ window.on_farm_selected(move |id| {
             Ok(true) => {
                 if let Some(window) = delete_activity_weak_window.upgrade() {
                     if let Err(error) = refresh_activities(&window, &delete_activity_conn) {
-                        eprintln!("Could not refresh activities: {error}");  // log
+                        eprintln!("Could not refresh activities: {error}"); // log
                     }
                 }
             }
@@ -440,13 +470,12 @@ fn refresh_farms(
     conn: &rusqlite::Connection,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let farms = db::farms::get_farms(conn)?;
-    let mut farm_names: Vec<SharedString> = vec![
-    SharedString::from("Not specified")
-    ];
+    let mut farm_names: Vec<SharedString> = vec![SharedString::from("Not specified")];
     farm_names.extend(
-    farms.iter()
-        .map(|farm| SharedString::from(farm.name.as_str()))
-        .filter(|name| !name.is_empty())
+        farms
+            .iter()
+            .map(|farm| SharedString::from(farm.name.as_str()))
+            .filter(|name| !name.is_empty()),
     );
 
     window.set_has_farms(!farms.is_empty());
@@ -456,9 +485,7 @@ fn refresh_farms(
         .map(|farm| {
             let display_text = format!(
                 "{}\nDescription: {}\nnotes: {}",
-                farm.name,
-                farm.description,
-                farm.notes
+                farm.name, farm.description, farm.notes
             );
 
             FarmData {
@@ -471,6 +498,15 @@ fn refresh_farms(
         })
         .collect();
 
+    if window.get_farm_current_page().to_string() == "farms" {
+        window.set_screen_farm(ScreenState {
+            is_editing: (false),
+            pending_delete_id: (-1),
+            selected_id: (-1),
+            show_delete_dialog: (false),
+        });
+    }
+
     window.set_farms(ModelRc::new(VecModel::from(model)));
     window.set_farm_names(ModelRc::new(VecModel::from(farm_names)));
 
@@ -480,16 +516,15 @@ fn refresh_farms(
 fn refresh_groups(
     window: &MainWindow,
     conn: &rusqlite::Connection,
-    farm_id: i64
+    farm_id: i64,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let groups = db::groups::get_groups_by_farm(conn, farm_id)?;
-    let mut group_names: Vec<SharedString> = vec![
-    SharedString::from("Not specified")
-    ];
+    let mut group_names: Vec<SharedString> = vec![SharedString::from("Not specified")];
     group_names.extend(
-    groups.iter()
-        .map(|group| SharedString::from(group.name.as_str()))
-        .filter(|name| !name.is_empty())
+        groups
+            .iter()
+            .map(|group| SharedString::from(group.name.as_str()))
+            .filter(|name| !name.is_empty()),
     );
 
     window.set_has_groups(!groups.is_empty());
@@ -499,10 +534,7 @@ fn refresh_groups(
         .map(|group| {
             let display_text = format!(
                 "{} \nFarm {} \nDescription: {}\nNotes: {}",
-                group.name,
-                group.farm_id,
-                group.description,
-                group.notes
+                group.name, group.farm_id, group.description, group.notes
             );
 
             GroupData {
@@ -527,15 +559,14 @@ fn refresh_fields(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let fields = db::fields::get_fields(conn)?;
 
-    let mut field_names: Vec<SharedString> = vec![
-        SharedString::from("Not specified")
-        ];
-        field_names.extend(
-            fields.iter()
+    let mut field_names: Vec<SharedString> = vec![SharedString::from("Not specified")];
+    field_names.extend(
+        fields
+            .iter()
             .map(|field| SharedString::from(field.name.as_str()))
-            .filter(|name| !name.is_empty())
-        );
-        
+            .filter(|name| !name.is_empty()),
+    );
+
     window.set_has_fields(!fields.is_empty());
 
     let model: Vec<FieldData> = fields
@@ -543,11 +574,7 @@ fn refresh_fields(
         .map(|field| {
             let display_text = format!(
                 "{} \nFarm {} \nGroup {} \nArea: {}\nNotes: {}",
-                field.name,
-                field.farm_id,
-                field.group_id,
-                field.area,
-                field.notes
+                field.name, field.farm_id, field.group_id, field.area, field.notes
             );
 
             FieldData {
@@ -571,12 +598,10 @@ fn refresh_fields(
 fn refresh_groups_with_fields(
     window: &MainWindow,
     conn: &rusqlite::Connection,
-    farm_id: i64
-) -> Result<(), Box<dyn std::error::Error>>
-{
+    farm_id: i64,
+) -> Result<(), Box<dyn std::error::Error>> {
     let groups: Vec<models::group::Group> = db::groups::get_groups_by_farm(conn, farm_id)?;
     let fields: Vec<models::field::Field> = db::fields::get_fields_by_farm(conn, farm_id)?;
-
 
     window.set_has_groups(!groups.is_empty());
     // window.set_has_fields(value);
@@ -584,38 +609,33 @@ fn refresh_groups_with_fields(
     let model: Vec<GroupWithFields> = groups
         .into_iter()
         .map(|group| {
-
             let group_fields: Vec<FieldData> = fields
-            .iter()
-            .filter(|field| field.group_id == group.id)
-            .map(|field|{
-                FieldData {
+                .iter()
+                .filter(|field| field.group_id == group.id)
+                .map(|field| FieldData {
                     id: field.id as i32,
                     farm_id: field.farm_id as i32,
                     group_id: field.group_id as i32,
                     name: field.name.clone().into(),
                     area: field.area as f32,
                     notes: field.notes.clone().into(),
-                    display_text: "".into()
-                }
-            })
-            .collect();
+                    display_text: "".into(),
+                })
+                .collect();
 
             GroupWithFields {
-                group: GroupData { 
+                group: GroupData {
                     id: group.id as i32,
                     farm_id: group.farm_id as i32,
                     name: group.name.into(),
                     description: group.description.into(),
                     notes: group.notes.into(),
-                    display_text: "".into()
+                    display_text: "".into(),
                 },
-                fields: ModelRc::new(VecModel::from(group_fields))
+                fields: ModelRc::new(VecModel::from(group_fields)),
             }
-        }
-    )
-    .collect();
-    
+        })
+        .collect();
 
     window.set_groups_with_fields(ModelRc::new(VecModel::from(model)));
     Ok(())
@@ -625,26 +645,26 @@ fn refresh_crops(
     window: &MainWindow,
     conn: &rusqlite::Connection,
     farm_id: i64,
-    field_id: i64
+    field_id: i64,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let crops:Vec<models::crop::Crop> = db::crops::get_crops(conn, farm_id)?;
+    let crops: Vec<models::crop::Crop> = db::crops::get_crops(conn, farm_id)?;
 
     window.set_has_crops(!crops.is_empty());
 
     let model: Vec<CropData> = crops
         .into_iter()
-        .map(|crop| {
-            CropData {
-                id: crop.id as i32,
-                name: crop.name.into(),
-                area: crop.area.to_string().into(),
-                farm_id: crop.farm_id as i32,
-                field_id: crop.field_id as i32,
-                planting_date: crop.planting_date.into(),
-                status: crop.status.into()
-            }
+        .map(|crop| CropData {
+            id: crop.id as i32,
+            name: crop.name.into(),
+            area: crop.area.to_string().into(),
+            farm_id: crop.farm_id as i32,
+            field_id: crop.field_id as i32,
+            planting_date: crop.planting_date.into(),
+            status: crop.status.into(),
         })
         .collect();
+
+    // field id will be used here...
 
     window.set_crops(ModelRc::new(VecModel::from(model)));
 
@@ -663,12 +683,12 @@ fn refresh_activities(
         .into_iter()
         .map(|activity| {
             let display_text = format!(
-            "\nCategory: {}\n Crop: {}\nStatus: {}\nScheduled At: {}\nDescription: {}",
-            activity.category,
-            activity.crop_id,
-            activity.status,
-            activity.scheduled_at,
-            activity.description
+                "\nCategory: {}\n Crop: {}\nStatus: {}\nScheduled At: {}\nDescription: {}",
+                activity.category,
+                activity.crop_id,
+                activity.status,
+                activity.scheduled_at,
+                activity.description
             );
 
             ActivityData {
@@ -688,7 +708,7 @@ fn refresh_activities(
                 notes: activity.notes.into(),
                 created_at: activity.created_at.into(),
                 updated_at: activity.updated_at.into(),
-                display_text: display_text.into()
+                display_text: display_text.into(),
             }
         })
         .collect();

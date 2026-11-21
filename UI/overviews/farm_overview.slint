@@ -7,11 +7,11 @@ import { FarmData } from "../models/farm_data.slint";
 import { UITextEdit } from "../components/ui_text_edit.slint";
 import { UiButtonImg } from "../components/ui_button_img.slint";
 import { RecordMenu } from "../components/record_menu.slint";
-import { RecordDeleteDialog } from "../components/record_delete_dialog.slint";
 import { ScreenState } from "../models/screen_state.slint";
 import { GroupData } from "../models/group_data.slint";
 import { FieldData } from "../models/field_data.slint";
 import { GroupWithFields } from "../models/group_with_fields.slint";
+import { ConfirmDialog } from "../components/confirm_dialog.slint";
 
 export component FarmOverview inherits VerticalBox {
     callback go-back();
@@ -31,18 +31,12 @@ export component FarmOverview inherits VerticalBox {
     in-out property <FieldData> field;
     in property <[GroupWithFields]> groups-with-fields;
     in property <color> dark-color;
-    in-out property <bool> record-menu-opened: false;
     in-out property <string> record-menu-target: "";
     in-out property <ScreenState> screen;
-
-    
-
 
     Rectangle {
         background: #f4fff5;
         border-radius: 12px;
-        
-
 
         VerticalLayout {
             padding: 12px;
@@ -54,7 +48,6 @@ export component FarmOverview inherits VerticalBox {
                     color: black;
                     font-weight: 800;
                     font-size: 14px;
-                    horizontal-alignment: start;
                     vertical-alignment: center;
                 }
                 Rectangle {
@@ -69,8 +62,8 @@ export component FarmOverview inherits VerticalBox {
                     }
                     TouchArea {
                         clicked => {
-                            record-menu-opened = true;
                             record-menu-target = "farm";
+                            record-menu.show();
                         }
                     }
                 }
@@ -86,7 +79,6 @@ export component FarmOverview inherits VerticalBox {
                 font-size: 12px;
                 font-weight: 600;
                 vertical-alignment: center;
-                horizontal-alignment: start;
                 wrap: word-wrap;
                 overflow: elide;
             }
@@ -96,7 +88,6 @@ export component FarmOverview inherits VerticalBox {
                 font-italic: true;
                 font-size: 12px;
                 vertical-alignment: center;
-                horizontal-alignment: start;
                 wrap: word-wrap;
             }
             if farm.description == "": Rectangle {
@@ -109,7 +100,6 @@ export component FarmOverview inherits VerticalBox {
     }
 
     Rectangle {
-        background: transparent;
         border-radius: 12px;
         border-width: 2px;
         border-color: dark-color;
@@ -158,8 +148,8 @@ export component FarmOverview inherits VerticalBox {
                                     TouchArea {
                                         clicked => {
                                             root.group = group-with-field.group;
-                                            record-menu-opened = true;
                                             record-menu-target = "group";
+                                            record-menu.show();
                                         }
                                     }
                                 }
@@ -201,8 +191,8 @@ export component FarmOverview inherits VerticalBox {
                                             TouchArea {
                                                 clicked => {
                                                     root.field = field;
-                                                    record-menu-opened = true;
                                                     record-menu-target = "field";
+                                                    record-menu.show();
                                                 }
                                             }
                                         }
@@ -231,9 +221,6 @@ export component FarmOverview inherits VerticalBox {
                                 }
         
                                 TouchArea {
-                                    width: parent.width;
-                                    height: parent.height;
-        
                                     clicked => {
                                         root.group = group-with-field.group;
                                         add-field();
@@ -253,7 +240,6 @@ export component FarmOverview inherits VerticalBox {
                 border-radius: 12px;
                 border-width: 1px;
                 border-color: dark-color;
-                background: transparent;
                 height: 44px;
 
                 HorizontalBox {
@@ -280,9 +266,6 @@ export component FarmOverview inherits VerticalBox {
                 }
 
                 TouchArea {
-                    width: parent.width;
-                    height: parent.height;
-
                     clicked => {
                         add-group();
                     };
@@ -292,9 +275,16 @@ export component FarmOverview inherits VerticalBox {
             
         }
     }
-    if root.screen.show-delete-dialog: RecordDeleteDialog {
+    delete-dialog:= ConfirmDialog {
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+        name:   record-menu-target == "farm" ? farm.name :
+                record-menu-target == "group" ? group.name :
+                record-menu-target == "field" ? field.name :
+                "";
+        title: record-menu-target + " > " + self.name;
+
         cancelled => {
-            root.screen.show-delete-dialog = false;
             root.screen.pending-delete-id = -1;
         }
 
@@ -302,26 +292,34 @@ export component FarmOverview inherits VerticalBox {
             if record-menu-target == "farm" { root.delete-farm(root.screen.pending-delete-id); }
             if record-menu-target == "group" { root.delete-group(root.screen.pending-delete-id); }
             if record-menu-target == "field" { root.delete-field(root.screen.pending-delete-id); }
+            debug(screen.pending-delete-id + " " + record-menu-target);
+
             root.screen.pending-delete-id = -1;
-            root.screen.show-delete-dialog = false;
         }
     }
+  
+    record-menu := RecordMenu{
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+        header: record-menu-target == "farm" ? record-menu-target + " > " + farm.name :
+                record-menu-target == "group" ? record-menu-target + " > " + group.name :
+                record-menu-target == "field" ? record-menu-target + " > " + field.name :
+                "";
 
-            if record-menu-opened: RecordMenu{
-                x-clicked => { record-menu-opened = false; }
-                edit-clicked() => {
-                    if record-menu-target == "farm" { edit-farm(farm); }
-                    if record-menu-target == "group" { edit-group(group); }
-                    if record-menu-target == "field" { edit-field(field); }
-                }
-                delete-clicked => {
-                    if record-menu-target == "farm" { root.screen.pending-delete-id = farm.id; }
-                    if record-menu-target == "group" { root.screen.pending-delete-id = group.id; }
-                    if record-menu-target == "field" { root.screen.pending-delete-id = field.id; }
-                        
-                    screen.show-delete-dialog = true;
-                    record-menu-opened = false;
-                }
-            }
-
+        x-clicked => {
+            record-menu-target = "";
+        }
+        edit-clicked() => {
+            if record-menu-target == "farm" { edit-farm(farm); }
+            if record-menu-target == "group" { edit-group(group); }
+            if record-menu-target == "field" { edit-field(field); }
+        }
+        delete-clicked => {
+            if record-menu-target == "farm" { root.screen.pending-delete-id = farm.id; }
+            if record-menu-target == "group" { root.screen.pending-delete-id = group.id; }
+            if record-menu-target == "field" { root.screen.pending-delete-id = field.id; }
+            delete-dialog.show();
+        }
+    }
 }
+ 

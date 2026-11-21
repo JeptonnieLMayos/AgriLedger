@@ -10,6 +10,7 @@ import { ConfirmDialog } from "../components/confirm_dialog.slint";
 import { UiButtonImg } from "../components/ui_button_img.slint";
 import { ScreenState } from "../models/screen_state.slint";
 import { RecordCard } from "../components/record_card.slint";
+import { CropOverview } from "../overviews/crop_overview.slint";
 
 
 
@@ -33,9 +34,27 @@ export component CropsScreen inherits Rectangle {
     in property <[CropData]> crops: [];
     in-out property <CropData> crop;
 
+    in property <int> farm_id;
+    in-out property <string> empty-text:
+        farm_id < 0 ? "Select farm first." :
+        "Tap + to register your first crop.";
+    in-out property <string> header: "Crops";
 
     in property <color> dark-color;
-    in-out property <string> head-text: "Crops";
+    in-out property <string> head-text: header;
+
+    out property <CropData> new: {
+        id: 0,
+        name: "",
+        area: 1,
+        farm-id: root.farm_id,
+        field_id: -1,
+        planting-date:
+                "\{root.current-date.year
+                }-\{root.current-date.month
+                }-\{root.current-date.day}",
+        status: "Fallow"
+    };
 
     if current-page == "crops": UiButton {
         x: root.width - self.width;
@@ -47,16 +66,7 @@ export component CropsScreen inherits Rectangle {
         clicked => {
             root.screen.is-editing = false;
             root.screen.selected-id = -1;
-            root.crop.id = 0;
-            root.crop.name = "";
-            root.crop.area = 0;
-            root.crop.farm-id = 1;
-            root.crop.field_id = 1;
-            root.crop.planting-date = 
-                "\{root.current-date.year
-                }-\{root.current-date.month
-                }-\{root.current-date.day}";
-            root.crop.status = "Fallow";
+            root.crop = new;
             root.add-crop();
         }
     }
@@ -88,7 +98,6 @@ export component CropsScreen inherits Rectangle {
                 font-size: 22px;
                 font-weight: 700;
                 color: #022817;
-                horizontal-alignment: start;
             }
         }
 
@@ -121,7 +130,7 @@ export component CropsScreen inherits Rectangle {
                     }
 
                     Text {
-                        text: "Tap + to register your first crop.";
+                        text: empty-text;
                         color: #59665c;
                         wrap: word-wrap;
                     }
@@ -138,18 +147,22 @@ export component CropsScreen inherits Rectangle {
                 }
             }
         }
+
+        if current-page == "overview": CropOverview {
+            go-back => {
+                root.screen.selected-id = -1;
+                root.crop = new;
+            }
+            edit-crop => {edit-crop(crop);}
+            delete-crop => {
+                delete-crop(screen.pending-delete-id);
+                current-page = "crops";
+            }
+
+            crop <=> root.crop;
+            dark-color: root.dark-color;
+            screen <=> root.screen;
+        }
     }
 
-    if root.screen.show-delete-dialog: ConfirmDialog {
-        cancelled => {
-            root.screen.show-delete-dialog = false;
-            root.screen.pending-delete-id = -1;
-        }
-
-        confirmed => {
-            root.delete-crop(root.screen.pending-delete-id);
-            root.screen.show-delete-dialog = false;
-            root.screen.pending-delete-id = -1;
-        }
-    }
 }

@@ -8,7 +8,6 @@ import { CropData } from "../models/crop_data.slint";
 import { UiButtonImg } from "../components/ui_button_img.slint";
 import { ConfirmDialog } from "../components/confirm_dialog.slint";
 import { RecordCard } from "../components/record_card.slint";
-import { RecordDeleteDialog } from "../components/record_delete_dialog.slint";
 
 export component ActivitiesScreen inherits Rectangle {
     callback go-back();
@@ -151,17 +150,19 @@ export component ActivitiesScreen inherits Rectangle {
             }
         }
     }
-    if root.screen.show-delete-dialog: RecordDeleteDialog {
-        cancelled => {
-            root.screen.show-delete-dialog = false;
-            root.screen.pending-delete-id = -1;
-        }
+    // delete-dialog:= RecordDeleteDialog {
+    //     _parent_width: root.width;
+    //     _parent_hieght: root.height;
+    //     cancelled => {
+    //         root.screen.show-delete-dialog = false;
+    //         root.screen.pending-delete-id = -1;
+    //     }
 
-        confirmed => {
-            root.delete-activity(root.screen.pending-delete-id);
-            root.screen.show-delete-dialog = false;
-            root.screen.pending-delete-id = -1;
-        }
-    }
+    //     confirmed => {
+    //         root.delete-activity(root.screen.pending-delete-id);
+    //         root.screen.show-delete-dialog = false;
+    //         root.screen.pending-delete-id = -1;
+    //     }
+    // }
 }
 

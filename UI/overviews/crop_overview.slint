@@ -1,0 +1,118 @@
+import { VerticalBox, Date, TextEdit, HorizontalBox } from "std-widgets.slint";
+import { UiButton } from "../components/ui_button.slint";
+import { UILineEdit } from "../components/ui_line_edit.slint";
+import { UIComboBox } from "../components/ui_combo_box.slint";
+import { UIDatePicker } from "../components/ui_date_picker.slint";
+import { UITextEdit } from "../components/ui_text_edit.slint";
+import { UiButtonImg } from "../components/ui_button_img.slint";
+import { RecordMenu } from "../components/record_menu.slint";
+import { ScreenState } from "../models/screen_state.slint";
+import { GroupWithFields } from "../models/group_with_fields.slint";
+import { ConfirmDialog } from "../components/confirm_dialog.slint";
+import { CropData } from "../models/crop_data.slint";
+
+export component CropOverview inherits VerticalBox {
+    callback go-back();
+    callback edit-crop();
+    callback delete-crop(int);
+
+    in-out property <CropData> crop;
+    in property <color> dark-color;
+    in-out property <ScreenState> screen;
+
+
+    
+
+
+    Rectangle {
+        background: #f4fff5;
+        border-radius: 12px;
+
+        VerticalLayout {
+            padding: 12px;
+            spacing: 12px;
+            HorizontalBox {
+                padding: 0px;
+                Text {
+                    text: crop.name;
+                    color: black;
+                    font-weight: 800;
+                    font-size: 14px;
+                    vertical-alignment: center;
+                }
+                Rectangle {
+                    vertical-stretch: 1;
+                }
+                Rectangle {
+                    Text {
+                        text: "...";
+                        color: dark-color;
+                        font-size: 16px;
+                        font-weight: 700;
+                    }
+                    TouchArea {
+                        clicked => {
+                            record-menu.show();
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                background: lightgray;
+                height: 1px;
+            }
+            Text {
+                text: crop.area;
+                color: gray;
+                font-size: 12px;
+                font-weight: 600;
+                vertical-alignment: center;
+                wrap: word-wrap;
+                overflow: elide;
+            }
+            Text {
+                text: crop.farm-id;
+                color: gray;
+                font-italic: true;
+                font-size: 12px;
+                vertical-alignment: center;
+                wrap: word-wrap;
+            }
+        }
+    }
+
+    delete-dialog:= ConfirmDialog {
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+        name:   crop.name;
+        title: "Crops" + " > " + self.name;
+
+        cancelled => {
+            root.screen.pending-delete-id = -1;
+        }
+
+        confirmed => {
+            root.delete-crop(root.screen.pending-delete-id);
+            root.screen.pending-delete-id = -1;
+        }
+    }
+  
+    record-menu := RecordMenu{
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+        header: "Crop > " + crop.name;
+
+        // x-clicked => {
+            
+        // }
+        edit-clicked() => {
+            edit-crop();
+        }
+        delete-clicked => {
+            root.screen.pending-delete-id = crop.id;
+            delete-dialog.show();
+        }
+    }
+}
+ 

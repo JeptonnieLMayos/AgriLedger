@@ -43,7 +43,7 @@ pub fn update_crop(
         "UPDATE crops
          SET name = ?1,
              area = ?2,
-             farm_id = ?3
+             farm_id = ?3,
              field_id = ?4,
              planting_date = ?5,
              status = ?6
